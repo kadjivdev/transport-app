@@ -1,0 +1,41 @@
+* {
+    /* font-family: 'poppins', sans-serif !important; */
+    font-family: 'Montserrat'!important;
+}
+
+.text-yellow {
+    color: #f8b909;
+}
+
+.form-control:focus {
+    border-color: #f8b909!important;
+    box-shadow: 0 0 0 0.2rem rgba(248, 185, 9, 0.25)!important;
+}
+
+.btn-yellow {
+    background-color: #f8b909;
+    border-color: #000;
+    color: #000;
+}
+
+.btn-yellow:hover {
+    background-color: #000;
+    border-color: #f8b909;
+    color: #f8b909;
+}
+
+._btn-dark {
+    background-color: #000!important;
+    border-color: #f8b909!important;
+    color: #f8b909!important;
+}
+
+._btn-dark:hover {
+    background-color: #f8b909!important;
+    border-color: #000!important;
+    color: #000!important;
+}
+
+.border-yellow{
+    border: #f8b909 solid 3px;
+}
