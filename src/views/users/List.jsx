@@ -7,7 +7,7 @@ import useDataTable from "src/hooks/useDataTable";
 import axiosInstance from "../../api/axiosInstance";
 import apiRoutes from "../../api/routes"
 import { useApp } from "../../AppContext";
-import axios from "axios";
+// import axios from "axios";
 
 const List = () => {
     const { setStatus, setMessage, setStatusCode } = useApp();
@@ -17,11 +17,11 @@ const List = () => {
     const getUsers = useCallback(async function () {
         try {
             console.log(`La route : ${apiRoutes.allUser}`)
-            const response = await axios.get(apiRoutes.allUser)
-            console.log(`Les users : ${JSON.stringify(response)}`)
+            const response = await axiosInstance.get(apiRoutes.allUser)
+            console.log(`Les users : ${response}`)
 
             // setStatusCode(response.status);
-            setUsers(response.data);
+            setUsers(response?.data);
         } catch (error) {
             setStatus('error');
             setStatusCode(response.status);
@@ -58,7 +58,7 @@ const List = () => {
                         {
                             users.map((user, key) => (
                                 <tr key={key}>
-                                    <th scope="row">{key+1}</th>
+                                    <th scope="row">{key + 1}</th>
                                     <td>{user.name}</td>
                                     <td>{user.email}</td>
                                     <td>{user.createdAt}</td>

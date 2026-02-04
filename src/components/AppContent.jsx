@@ -12,10 +12,11 @@ const AppContent = () => {
 
   return (
     <CContainer className="px-4" lg>
-      <Suspense fallback={<CSpinner color="primary" />}>
+      <Suspense fallback={<CSpinner color="dark" />}>
         <Routes>
           {routes.map((route, idx) => {
             // Protéger la route /dashboard
+            // localStorage.clear()
             if (!user) {
               return <Route key={idx} path={route.path} element={<Navigate to="/" replace />} />
             }

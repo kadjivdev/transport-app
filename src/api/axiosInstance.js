@@ -1,10 +1,12 @@
 import axios from 'axios';
 import apiRoutes from "./routes"
-import { Route, Routes } from 'react-router-dom';
-import routes from '../routes'
+// import { Route, Routes } from 'react-router-dom';
+// import routes from '../routes'
 
+console.log(`The baseUrl : ${import.meta.env.VITE_API_URL}`)
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+    // baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+    baseURL: import.meta.env.VITE_API_URL || '/api/v1',
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
@@ -15,48 +17,50 @@ const axiosInstance = axios.create({
 let isRefreshing = false;
 let failedQueue = [];
 
-const processQueue = (error = null) => {
-    failedQueue.forEach(promise => {
+const processQueue = (error, tokenRefreshed = false) => {
+    failedQueue.forEach(({ resolve, reject, config }) => {
         if (error) {
-            promise.reject(error);
+            reject(error);
         } else {
-            promise.resolve();
+            resolve(axiosInstance(config));
         }
     });
+
     failedQueue = [];
 };
 
-// 🔁 RESPONSE INTERCEPTOR
+console.log(`The axios default baseUrl : ${axiosInstance.defaults.baseURL}`)
+
 axiosInstance.interceptors.response.use(
-    (response) => response,
-    async (error) => {
+    response => response,
+    async error => {
         const originalRequest = error.config;
 
-        // ❌ Si pas 401 → on laisse passer
         if (error.response?.status !== 401) {
             return Promise.reject(error);
         }
 
-        // ❌ Empêcher boucle infinie
         if (originalRequest._retry) {
             return Promise.reject(error);
         }
 
         originalRequest._retry = true;
 
-        // 🔄 Si refresh déjà en cours → on attend
         if (isRefreshing) {
             return new Promise((resolve, reject) => {
-                failedQueue.push({ resolve, reject });
-            }).then(() => axiosInstance(originalRequest));
+                failedQueue.push({
+                    resolve,
+                    reject,
+                    config: originalRequest,
+                });
+            });
         }
 
         isRefreshing = true;
 
         try {
-            // 🔑 Appel refresh token
-            await axios.post(
-                apiRoutes.refresh, //'/auth/refresh',
+            await axiosInstance.post(
+                apiRoutes.refresh,
                 {},
                 {
                     baseURL: axiosInstance.defaults.baseURL,
@@ -64,15 +68,13 @@ axiosInstance.interceptors.response.use(
                 }
             );
 
-            processQueue();
+            processQueue(null);
             return axiosInstance(originalRequest);
 
         } catch (refreshError) {
             processQueue(refreshError);
 
-           localStorage.clear();
-
-            // 🚪 Logout propre
+            localStorage.clear();
             window.location.href = '/';
 
             return Promise.reject(refreshError);

@@ -1,76 +1,76 @@
 // BASE URL
-const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1"
+const baseUrl = import.meta.env.VITE_LOGIN_API_URL
 
 const myRoutes = {
   // auth routes
-  login: `${baseUrl}/login`,
-  logout: `${baseUrl}/logout`,
-  refresh: `${baseUrl}/refresh`,
-  verifyToken: `${baseUrl}/verify-token`,
+  login: `login`,
+  logout: `logout`,
+  refresh: `refresh`,
+  verifyToken: `verify-token`,
 
   // user's routes
-  allUser: `${baseUrl}/users`,
-  createUser: `${baseUrl}/users`,
-  retrieveUser: (id) => (`${baseUrl}/users/${id}`),
-  updateUser: (id) => (`${baseUrl}/users/${id}`),
-  deleteUser: (id) => (`${baseUrl}/users/${id}`),
+  allUser: `users`,
+  createUser: `users`,
+  retrieveUser: (id) => (`users/${id}`),
+  updateUser: (id) => (`users/${id}`),
+  deleteUser: (id) => (`users/${id}`),
 
   // role's routes
-  allRole: `${baseUrl}/roles`,
-  createRole: `${baseUrl}/roles`,
-  affectRole: `${baseUrl}/affect-role`,
-  retrieveRole: (id) => (`${baseUrl}/roles/${id}`),
-  updateRole: (id) => (`${baseUrl}/roles/${id}`),
-  deleteRole: (id) => (`${baseUrl}/roles/${id}`),
+  allRole: `roles`,
+  createRole: `roles`,
+  affectRole: `affect-role`,
+  retrieveRole: (id) => (`roles/${id}`),
+  updateRole: (id) => (`roles/${id}`),
+  deleteRole: (id) => (`roles/${id}`),
 
   // permissions
-  allPermission: `${baseUrl}/permissions`,
+  allPermission: `permissions`,
 
   // locations's routes
-  allLocation: `${baseUrl}/locations`,
-  createLocation: `${baseUrl}/locations`,
-  retrieveLocation: (id) => (`${baseUrl}/locations/${id}`),
-  updateLocation: (id) => (`${baseUrl}/locations/${id}`),
-  deleteLocation: (id) => (`${baseUrl}/locations/${id}`),
+  allLocation: `locations`,
+  createLocation: `locations`,
+  retrieveLocation: (id) => (`locations/${id}`),
+  updateLocation: (id) => (`locations/${id}`),
+  deleteLocation: (id) => (`locations/${id}`),
 
   // reglements's routes
-  allReglement: `${baseUrl}/reglements`,
-  createReglement: `${baseUrl}/reglements`,
-  retrieveReglement: (id) => (`${baseUrl}/reglements/${id}`),
-  updateReglement: (id) => (`${baseUrl}/reglements/${id}`),
-  deleteReglement: (id) => (`${baseUrl}/reglements/${id}`),
+  allReglement: `reglements`,
+  createReglement: `reglements`,
+  retrieveReglement: (id) => (`reglements/${id}`),
+  updateReglement: (id) => (`reglements/${id}`),
+  deleteReglement: (id) => (`reglements/${id}`),
 
   // depenses's routes
-  allDepense: `${baseUrl}/depenses`,
-  createDepense: `${baseUrl}/depenses`,
-  retrieveDepense: (id) => (`${baseUrl}/depenses/${id}`),
-  updateDepense: (id) => (`${baseUrl}/depenses/${id}`),
-  deleteDepense: (id) => (`${baseUrl}/depenses/${id}`),
+  allDepense: `depenses`,
+  createDepense: `depenses`,
+  retrieveDepense: (id) => (`depenses/${id}`),
+  updateDepense: (id) => (`depenses/${id}`),
+  deleteDepense: (id) => (`depenses/${id}`),
 
   /**
    * Les routes de settings
    */
 
   // camion's routes
-  allCamion: `${baseUrl}/camions`,
-  createCamion: `${baseUrl}/camions`,
-  retrieveCamion: (id) => (`${baseUrl}/camions/${id}`),
-  updateCamion: (id) => (`${baseUrl}/camions/${id}`),
-  deleteCamion: (id) => (`${baseUrl}/camions/${id}`),
+  allCamion: `camions`,
+  createCamion: `camions`,
+  retrieveCamion: (id) => (`camions/${id}`),
+  updateCamion: (id) => (`camions/${id}`),
+  deleteCamion: (id) => (`camions/${id}`),
 
   // client's routes
-  allClient: `${baseUrl}/clients`,
-  createClient: `${baseUrl}/clients`,
-  retrieveClient: (id) => (`${baseUrl}/clients/${id}`),
-  updateClient: (id) => (`${baseUrl}/clients/${id}`),
-  deleteClient: (id) => (`${baseUrl}/clients/${id}`),
+  allClient: `clients`,
+  createClient: `clients`,
+  retrieveClient: (id) => (`clients/${id}`),
+  updateClient: (id) => (`clients/${id}`),
+  deleteClient: (id) => (`clients/${id}`),
 
   // Locations types's routes
-  allLocationType: `${baseUrl}/location-types`,
-  createLocationType: `${baseUrl}/location-types`,
-  retrieveLocationType: (id) => (`${baseUrl}/location-types/${id}`),
-  updateLocationType: (id) => (`${baseUrl}/location-types/${id}`),
-  deleteLocationType: (id) => (`${baseUrl}/location-types/${id}`),
+  allLocationType: `location-types`,
+  createLocationType: `location-types`,
+  retrieveLocationType: (id) => (`location-types/${id}`),
+  updateLocationType: (id) => (`location-types/${id}`),
+  deleteLocationType: (id) => (`location-types/${id}`),
 }
 
 export default myRoutes

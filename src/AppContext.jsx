@@ -20,10 +20,10 @@ export const AppProvider = ({ children }) => {
         setLoading(true);
         setStatus(null);
         try {
-            const response = await axios.post(apiRoutes.login, { email, password });
+            const response = await axiosInstance.post(apiRoutes.login, { email, password });
 
             console.log(`The response of success : ${JSON.stringify(response.data)}`)
-            const userData = response.data.user || response.data;
+            const userData = response.data?.user || response.data;
 
             localStorage.setItem("user", JSON.stringify(userData))
             console.log(`Les elements du localstorage : ${localStorage.getItem("user")} `)
@@ -75,6 +75,9 @@ export const AppProvider = ({ children }) => {
         setLoading(true);
         setStatus(null);
 
+        alert("Logout called ....")
+        console.log("Logout called ....")
+
         try {
             const response = await axiosInstance.post(apiRoutes.logout, {});
             setStatus('success');
@@ -90,6 +93,7 @@ export const AppProvider = ({ children }) => {
             let errorStatus = error.response?.status;
             let errorMessage = '';
 
+            alert(`Status error : ${errorStatus}`)
             if (errorStatus === 500) {
                 errorMessage = 'Erreur côté serveur';
             } else if (errorStatus === 401) {
@@ -102,9 +106,10 @@ export const AppProvider = ({ children }) => {
             setMessage(errorMessage);
             setStatusCode(errorStatus);
 
-            console.error('Erreur de déconnexion:', error);
+            console.log('Erreur de déconnexion:', error);
             return { success: false, status: errorStatus, error: errorMessage };
         } finally {
+            console.log("Logout ended ....")
             setUser(null);
             setIsAuthenticated(false);
             setLoading(false);
