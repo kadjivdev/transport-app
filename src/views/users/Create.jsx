@@ -2,43 +2,59 @@ import { cilList, cilSend } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import { useState } from "react";
 import Card from "src/components/Card";
-import Button from "src/components/Button";
+import CustomButton from "src/components/CustomButton";
 import LinkButton from "src/components/LinkButton";
 import InputLabel from "src/components/forms/InputLabel";
 import { useApp } from "../../AppContext";
+import { useNavigate } from "react-router-dom";
 
 const Create = () => {
-    const { register } = useApp
+    const { register } = useApp()
     const [errors, setErrors] = useState({ name: '', email: '', password: '', password_confirmation: '' });
 
+    const navigate = useNavigate();
+    
     const handleSubmit = async (e) => {
+
         e.preventDefault();
 
-        const { fullname, email, password, password_confirmation } = e.target.value;
+        const { name, email, password, password_confirmation } = e.target;
 
         try {
             const response = await register({
-                name: fullname,
-                email: email,
-                password: password,
-                password_confirmation: password_confirmation
+                name: name.value,
+                email: email.value,
+                password: password.value,
+                password_confirmation: password_confirmation.value
             });
 
-            if (response.status === 201) {
+            if (response.success) {
                 console.log('Utilisateur créé avec succès !');
                 e.target.reset();
                 setErrors({ name: '', email: '', password: '', password_confirmation: '' });
+
+                // window.location.href = '/users/list';
+                return navigate("/users/list");
+            } else {
+                if (response.errors) {
+                    console.error('Erreurs de validation:', response?.errors);
+                    // Erreurs de validation
+                    setErrors(response?.errors);
+                } else {
+                    console.error('Erreur:', response.error);
+                    alert('Une erreur est survenue');
+                }
             }
         } catch (error) {
+            console.log('Erreur lors de la création de l\'utilisateur :', error.response);
             if (error.response?.status === 422) {
+                console.error('Erreurs de validation:', error.response?.data?.errors);
                 // Erreurs de validation
-                setErrors(error.response.data.errors);
+                setErrors(error.response?.data?.errors);
             } else {
                 console.error('Erreur:', error);
                 alert('Une erreur est survenue');
             }
-        } finally {
-            setLoading(false);
         }
     }
 
@@ -55,10 +71,10 @@ const Create = () => {
                         <form onSubmit={(e) => handleSubmit(e)}>
                             <div className="mb-3">
                                 <InputLabel
-                                    htmlFor="fullname"
+                                    htmlFor="name"
                                     text="Nom & Prénom"
                                     required={true} />
-                                <input type="text" className="form-control" id="fullname" placeholder="Ex: Dohou Joe" autoFocus />
+                                <input type="text" name="name" className="form-control" id="name" placeholder="Ex: Dohou Joe" autoFocus />
                                 {errors.name && <span className="text-danger">{errors.name}</span>}
                             </div>
                             <div className="mb-3">
@@ -66,7 +82,7 @@ const Create = () => {
                                     htmlFor="email"
                                     text="Email address"
                                     required={true} />
-                                <input type="email" className="form-control" id="email" placeholder="Ex: joe@gmail.com" />
+                                <input type="email" name="email" className="form-control" id="email" placeholder="Ex: joe@gmail.com" />
                                 {errors.email && <span className="text-danger">{errors.email}</span>}
                             </div>
                             <div className="mb-3">
@@ -74,21 +90,21 @@ const Create = () => {
                                     htmlFor="password"
                                     text="Mot de passe"
                                     required={true} />
-                                <input type="password" className="form-control" id="password" placeholder="Ex : **************" />
+                                <input type="password" name="password" className="form-control" id="password" placeholder="Ex : **************" />
                                 {errors.password && <span className="text-danger">{errors.password}</span>}
                             </div>
                             <div className="mb-3">
                                 <InputLabel
                                     htmlFor="password_confirmation"
-                                    text="Confirmez le mot de passe"
-                                    required={true} />
-                                <input type="password" className="form-control" id="password_confirmation" placeholder="Ex : **************" />
+                                    text="Confirmez le mot de passe" />
+                                <input type="password" name="password_confirmation" className="form-control" id="password_confirmation" placeholder="Ex : **************" />
                                 {errors.password_confirmation && <span className="text-danger">{errors.password_confirmation}</span>}
                             </div>
 
                             <div className="">
-                                <Button newClass={'_btn-dark'}> <CIcon icon={cilSend} /> Enregistrer </Button>
+                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
                             </div>
+                            <br /><br /><br />
                         </form>
                     </Card>
                 </div>

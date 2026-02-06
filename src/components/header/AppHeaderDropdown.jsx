@@ -1,4 +1,3 @@
-import React from 'react'
 import {
   CAvatar,
   CDropdown,
@@ -23,8 +22,7 @@ import { useNavigate } from 'react-router-dom'
 const AppHeaderDropdown = () => {
   const navigate = useNavigate()
   const { logout } = useApp();
-
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = localStorage.getItem("user");
 
   const Logout = async (e) => {
     e.preventDefault()
@@ -34,7 +32,6 @@ const AppHeaderDropdown = () => {
       // redirection
       navigate("/")
     }
-    // 
   }
 
   return (

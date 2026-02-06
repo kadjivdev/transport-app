@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import DataTable from 'datatables.net-bs5';
 
 // CSS principal
@@ -28,12 +27,24 @@ pdfMake.vfs = pdfFonts.vfs; // ✅ not pdfFonts.pdfMake.vfs
 
 import 'datatables.net-responsive';
 
-const useDataTable = (tableId = 'myTable') => {
+import { useEffect, useRef } from 'react';
+
+const useDataTable = (tableId = 'myTable', data = []) => {
+    const tableRef = useRef(null);
+
     useEffect(() => {
+        if (!data.length) return;
+
         const tableElement = document.getElementById(tableId);
         if (!tableElement) return;
 
-        const table = new DataTable(`#${tableId}`, {
+        // destroy previous instance
+        if (tableRef.current) {
+            tableRef.current.destroy();
+            tableRef.current = null;
+        }
+
+        tableRef.current = new DataTable(`#${tableId}`, {
             pagingType: 'full_numbers',
             responsive: true,
             dom: `
@@ -48,7 +59,7 @@ const useDataTable = (tableId = 'myTable') => {
                 >
             `,
             pageLength: 15,
-            order: [[0, 'desc']],
+            order: [[0, 'asc']],
             buttons: [
                 { extend: 'copy', className: 'btn btn-sm btn-dark', text: '<i class="fas fa-copy"></i> Copier' },
                 { extend: 'excel', className: 'btn btn-sm btn-success', text: '<i class="fas fa-file-excel"></i> Excel' },
@@ -76,8 +87,16 @@ const useDataTable = (tableId = 'myTable') => {
             }
         });
 
-        return () => table.destroy();
-    }, [tableId]);
+        return () => {
+            if (tableRef.current) {
+                tableRef.current.destroy();
+                tableRef.current = null;
+            }
+        };
+    }, [tableId, data]);
+
+    return tableRef; // 🔥 expose it
 };
 
 export default useDataTable;
+

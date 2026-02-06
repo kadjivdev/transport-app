@@ -14,6 +14,12 @@ export const AppProvider = ({ children }) => {
     const [status, setStatus] = useState(null); // 'success', 'error', 'info'
     const [message, setMessage] = useState('');
     const [statusCode, setStatusCode] = useState(null);
+    const [allPermissions, setAllPermissions] = useState([]);
+    const [allRoles, setAllRoles] = useState([]);
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalTitle, setModalTitle] = useState('');
+    const [modalBody, setModalBody] = useState('');
 
     // Login
     const login = useCallback(async (email, password) => {
@@ -22,13 +28,13 @@ export const AppProvider = ({ children }) => {
         try {
             const response = await axiosInstance.post(apiRoutes.login, { email, password });
 
-            console.log(`The response of success : ${JSON.stringify(response.data)}`)
             const userData = response.data?.user || response.data;
 
             localStorage.setItem("user", JSON.stringify(userData))
-            console.log(`Les elements du localstorage : ${localStorage.getItem("user")} `)
+            localStorage.setItem("all_roles", JSON.stringify(response.data?.all_roles || []));
+            localStorage.setItem("all_permissions", JSON.stringify(response.data?.all_permissions || []));
 
-            setUser(userData);
+            setUser(response.data?.user || response.data);
             setIsAuthenticated(true);
             setStatus('success');
             setMessage('Connexion réussie!');
@@ -44,8 +50,8 @@ export const AppProvider = ({ children }) => {
                     break;
 
                 case 500:
-                    errorMessage = "Erreure de côté serveur";
-
+                    errorMessage = "Erreure côté serveur";
+                    break;
                 case 401:
                     errorMessage = "Identifiants incorrects! ";
                 default:
@@ -74,9 +80,6 @@ export const AppProvider = ({ children }) => {
     const logout = useCallback(async () => {
         setLoading(true);
         setStatus(null);
-
-        alert("Logout called ....")
-        console.log("Logout called ....")
 
         try {
             const response = await axiosInstance.post(apiRoutes.logout, {});
@@ -135,16 +138,12 @@ export const AppProvider = ({ children }) => {
             setMessage(errorMessage);
             setStatusCode(errorStatus);
 
-            console.error('Erreur d\'inscription:', error);
-            return { success: false, status: errorStatus, error: errorMessage, errors };
+            // console.log('Erreur lors de la création de l\'utilisateur :', error.response);
+            // console.log('Erreur status:', errorStatus);
+            return { success: false, status: errorStatus, error: errorMessage, errors: errors };
         } finally {
             setLoading(false);
         }
-    }, []);
-
-    // Update user
-    const updateUser = useCallback((updatedUser) => {
-        setUser(updatedUser);
     }, []);
 
     // Réinitialiser le status
@@ -162,10 +161,20 @@ export const AppProvider = ({ children }) => {
         message,
         statusCode,
         setStatus,
+        setLoading,
+        setMessage,
+        setStatusCode,
+        modalVisible,
+        setModalVisible,
+        modalTitle,
+        setModalTitle,
+        modalBody,
+        setModalBody,
+        allPermissions,
+        allRoles,
         login,
         logout,
         register,
-        updateUser,
         clearStatus,
     };
 

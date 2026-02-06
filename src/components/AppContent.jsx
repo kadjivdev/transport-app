@@ -1,13 +1,10 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { CContainer, CSpinner } from '@coreui/react'
-
 // routes config
 import routes from '../routes'
-// import { useApp } from '../AppContext'
 
 const AppContent = () => {
-  // const {isAuthenticated} = useApp();
   const user = localStorage.getItem("user")
 
   return (
@@ -17,7 +14,9 @@ const AppContent = () => {
           {routes.map((route, idx) => {
             // Protéger la route /dashboard
             // localStorage.clear()
+
             if (!user) {
+              // redirection vers la page de login si non authentifié
               return <Route key={idx} path={route.path} element={<Navigate to="/" replace />} />
             }
 
