@@ -13,6 +13,11 @@ const User = {
   List: React.lazy(() => import('./views/users/List')),
   Create: React.lazy(() => import('./views/users/Create')),
 }
+// users
+const Role = {
+  List: React.lazy(() => import('./views/roles/List')),
+  Create: React.lazy(() => import('./views/roles/Create')),
+}
 
 const routes = [
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
@@ -22,6 +27,9 @@ const routes = [
 
   { path: '/users/list', name: 'Liste des utilisateurs', element: User.List },
   { path: '/users/create', name: 'Ajouter un utilisateur', element: User.Create },
+
+  { path: '/roles/list', name: 'Liste des rôles', element: Role.List },
+  { path: '/roles/create', name: 'Ajouter un rôle', element: Role.Create },
 ]
 
 /** My routes */

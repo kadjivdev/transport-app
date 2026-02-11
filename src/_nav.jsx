@@ -2,6 +2,8 @@ import CIcon from '@coreui/icons-react'
 import {
   cibAutotask,
   cibDraugiemLv,
+  cibFSecure,
+  cibGnuPrivacyGuard,
   cibMathworks,
   cibMyspace,
   cibProxmox,
@@ -179,6 +181,26 @@ const _nav = [
         component: CNavItem,
         name: 'Ajouter un utilisateur',
         to: '/users/create',
+      },
+    ]
+  },
+
+  // les roles
+  {
+    component: CNavGroup,
+    name: 'Rôles',
+    to: "/roles",
+    icon: <CIcon icon={cibGnuPrivacyGuard} customClassName="nav-icon" />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Liste des rôles',
+        to: '/roles/list',
+      },
+      {
+        component: CNavItem,
+        name: 'Ajouter un rôle',
+        to: '/roles/create',
       },
     ]
   },
