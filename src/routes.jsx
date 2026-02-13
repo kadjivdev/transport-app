@@ -13,10 +13,17 @@ const User = {
   List: React.lazy(() => import('./views/users/List')),
   Create: React.lazy(() => import('./views/users/Create')),
 }
-// users
+
+// roles
 const Role = {
   List: React.lazy(() => import('./views/roles/List')),
   Create: React.lazy(() => import('./views/roles/Create')),
+}
+
+// clients
+const Client = {
+  List: React.lazy(() => import('./views/clients/List')),
+  Create: React.lazy(() => import('./views/clients/Create')),
 }
 
 const routes = [
@@ -30,6 +37,9 @@ const routes = [
 
   { path: '/roles/list', name: 'Liste des rôles', element: Role.List },
   { path: '/roles/create', name: 'Ajouter un rôle', element: Role.Create },
+
+  { path: '/clients/list', name: 'Liste des clients', element: Client.List },
+  { path: '/clients/create', name: 'Ajouter un client', element: Client.Create },
 ]
 
 /** My routes */
