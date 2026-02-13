@@ -22,7 +22,7 @@ import { useNavigate } from 'react-router-dom'
 const AppHeaderDropdown = () => {
   const navigate = useNavigate()
   const { logout } = useApp();
-  const user = localStorage.getItem("user");
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const Logout = async (e) => {
     e.preventDefault()
@@ -48,7 +48,7 @@ const AppHeaderDropdown = () => {
         </CDropdownItem>
         <CDropdownItem href="#">
           <CIcon icon={cilSettings} className="me-2" />
-          Profile
+          Rôle: <br /><strong className="text-success"> {user?.roles?.[0]?.name || 'admin'}</strong>
         </CDropdownItem>
         <CDropdownDivider />
         {

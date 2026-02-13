@@ -1,4 +1,5 @@
-import { cibAddthis, cilDialpad, cilLink, cilList, cilPencil, cilTrash } from "@coreui/icons";
+import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
+import { cibAddthis, cilCheckCircle, cilDelete, cilDialpad, cilList, cilPencil, cilTrash } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Card from "src/components/Card";
@@ -7,125 +8,143 @@ import useDataTable from "src/hooks/useDataTable";
 import axiosInstance from "../../api/axiosInstance";
 import apiRoutes from "../../api/routes"
 import { useApp } from "../../AppContext";
-import { Modal } from "../../components/Modal";
 import InputLabel from "src/components/forms/InputLabel";
 import { useNavigate } from "react-router-dom";
 import ConfirmAlert from "../../hooks/ConfirmAlert";
 
 const List = () => {
-    const { setStatus, setLoading, setMessage, setStatusCode, modalVisible, setModalVisible, setModalTitle, setModalBody } = useApp();
+    const { setStatus, setLoading, setMessage, setStatusCode, modalVisible, setModalVisible, modalTitle, setModalTitle, modalBody, setModalBody } = useApp();
 
     const navigate = useNavigate();
 
-    const roles = JSON.parse(localStorage.getItem("all_roles") || "[]");
-    const all_pers = JSON.parse(localStorage.getItem("all_permissions") || "[]");
+    const allPers = JSON.parse(localStorage.getItem("all_permissions") || "[]");
+    const currentUser = JSON.parse(localStorage.getItem("user") || "[]");
 
+    const [roles, setRoles] = useState([]);
 
     const [allPermissions, setAllPermissions] = useState([]);
     const submitFunction = useRef(() => { });
-    const currentRole = useRef(null);
+    const [currentRole, setCurrentRole] = useState({});
     const [actionText, setActionText] = useState("Enregistrer");
 
     const [searchTerm, setSearchTerm] = useState("");
-    const [filteredPermissions, setFilteredPermissions] = useState([]);
+    const [searchRoleTerm, setSearchRoleTerm] = useState("");
 
-    useEffect(() => {
-        setAllPermissions(
-            all_pers.map(permission => ({
-                id: permission.id,
-                name: permission.name,
-                description: permission.description,
-                checked: currentRole.current?.permissions?.some(p => p.id === permission.id) || false
-            }))
-        );
-    }, [all_pers, currentRole.current]);
+    const [modalPermissionsVisible, setModalPermissionsVisible] = useState(false);
 
-    useEffect(() => {
-        if (currentRole.current?.permissions) {
-            setFilteredPermissions(currentRole.current.permissions);
+    const getRoles = useCallback(async function () {
+        try {
+            console.log(`La route : ${apiRoutes.allRole}`)
+            const response = await axiosInstance.get(apiRoutes.allRole)
+
+            setRoles(response?.data);
+
+            console.log(`Tous les roles : ${response.data.length}`)
+
+            setStatus('success');
+            setStatusCode(response.status);
+            setMessage('Liste des rôles chargée avec succès!');
+
+            return response.data;
+        } catch (error) {
+            setStatus('error');
+            setStatusCode(error.response?.status);
+            setMessage('Erreure lors du chargement des rôles!!');
         }
-    }, [currentRole.current]);
+    }, [])
+
+    useEffect(() => {
+        getRoles();
+    }, [])
+
+
+    // formattage des permissions pour les afficher dans le modal de modification d'un rôle
+    useEffect(() => {
+        setAllPermissions(allPers.map(permission => ({
+            id: permission.id,
+            name: permission.name,
+            description: permission.description,
+            checked: currentRole?.permissions?.some(p => p.name === permission.name) || false
+        })))
+
+        console.log(`setAllPermissions role updated `)
+    }, [currentRole]);
+
+    useEffect(() => {
+        // actualiser les données du rôle à modifier pour les afficher dans le modal de modification
+        setDataRole({ name: currentRole?.name || '', permissions: currentRole?.permissions || [] });
+
+        console.log(`setDataRole updated`)
+        console.log(`Data current Role permissions updated `)
+    }, [currentRole]);
 
     // 
-    const [dataRole, setDataRole] = useState({ name: '', permissions: [] });
-    const [errors, setErrors] = useState({ name: '' });
+    const [dataRole, setDataRole] = useState({ name: '', permissions: allPermissions.filter(p => p.checked) });
+    const [errors, setErrors] = useState({ name: '', permissions: '' });
 
     // Call DataTable
     useDataTable('myTable', roles);
 
+    useEffect(() => {
+        setAllPermissions(allPers.map(permission => ({
+            id: permission.id,
+            name: permission.name,
+            description: permission.description,
+            checked: currentRole?.permissions?.some(p => p.name === permission.name) || false
+        })))
+    }, [!searchTerm, !searchRoleTerm])
+
+    // chargement des rôles
     useEffect(function () {
-        // chargement des roles
         setStatus('success');
         setStatusCode(200);
         setMessage('Liste des rôles chargée avec succès!');
     }, [])
 
-    useEffect(() => {
-        setDataRole({ name: currentRole.current?.name || '' });
-    }, [currentRole.current])
-
+    // verification de permission
+    const checkPermission = (name) => {
+        return currentUser?.permissions?.some(per => per.name == name);
+    }
 
     // rechercher une permission dans la liste des permissions d'un rôle
-    const searchPermission = (e) => {
-        const value = e.target.value.toLowerCase();
+    const filteredAllPermissions = allPermissions.filter(permission =>
+        permission.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        permission.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-        console.log(`Search term : ${value}`)
-
-        const filtered = currentRole.current?.permissions?.filter(permission =>
-            permission.name.toLowerCase().includes(value) ||
-            permission.description.toLowerCase().includes(value)
-        );
-
-        setFilteredPermissions(filtered);
-    };
-
+    const filteredRolePermissions = currentRole?.permissions?.filter(permission =>
+        permission.name.toLowerCase().includes(searchRoleTerm.toLowerCase()) ||
+        permission.description.toLowerCase().includes(searchRoleTerm.toLowerCase())
+    );
 
     // Afficher les permissions d'un role
     const showPermissions = (role) => {
 
-        currentRole.current = role;
+        setCurrentRole(role);
 
-        setFilteredPermissions(role.permissions || []); // réinitialiser la liste filtrée avant de faire le filtrage
-
-        setModalVisible(true);
+        setModalPermissionsVisible(true);
         setModalTitle(`Liste des permissions du rôle ## ${role.name} ##`);
-
-        setModalBody(
-            <div className="mb-3">
-                <input type="text" className="form-control rounded borded shadow my-2" placeholder="Faire une rechercher ..."
-                    // value={searchTerm}
-                    onChange={(e) => searchPermission(e)} />
-                <ul className="list-group">
-                    {
-                        role.permissions.map((permission, key) => (
-                            <li key={key} className="list-group-item">{permission.description} - ({permission.name})</li>
-                        ))
-                    }
-                </ul>
-            </div>
-        )
-        // 
-        setActionText("")
     }
 
     /**
      * Modification du rôle d'un utilisateur
      */
-    const handleUpdateSubmit = async () => {
+    const handleUpdateSubmit = async (e) => {
+        e.preventDefault();
 
         setLoading(true);
         setStatus(null);
 
         try {
-            const response = await axiosInstance.put(apiRoutes.updateUser(currentUser.current?.id), dataUser);
+            const response = await axiosInstance.put(apiRoutes.updateRole(currentRole?.id), dataRole);
 
-            console.log('Utilisateur modifié avec succès !');
-            setErrors({ name: '', email: '', password: '', password_confirmation: '' });
+            console.log('Rôle modifié avec succès !');
+            setErrors({ name: '', permissions: '' });
 
-            getUsers(); // actualiser la liste des utilisateurs
+            getRoles(); // actualiser la liste des rôles
             setModalVisible(false);
             setStatus('success');
-            setMessage(`L'utilisateur ${currentUser.current?.name || currentUser.current?.email} a été modifié avec succès!`);
+            setMessage(`Le rôle ${currentRole?.name} a été modifié avec succès!`);
             setStatusCode(response.status);
 
             return navigate("/roles/list");
@@ -136,9 +155,9 @@ const List = () => {
 
             let errorMessage = '';
             if (error.response?.status === 422) {
-                errorMessage = `Erreure de validation lors de la modification de l'utilisateur ${currentUser.current?.name || currentUser.current?.email} : ${JSON.stringify(error.response?.data?.errors)}`;
+                errorMessage = `Erreure de validation lors de la modification du rôle ${currentRole?.name || 'inconnu'} : ${JSON.stringify(error.response?.data?.errors)}`;
                 setMessage(errorMessage);
-                setErrors(error.response?.data?.errors || { name: '', email: '', password: '', password_confirmation: '' });
+                setErrors(error.response?.data?.errors || { name: '', permissions: '' });
             } else {
                 console.error('Erreur:', error);
                 alert('Une erreur est survenue');
@@ -146,111 +165,55 @@ const List = () => {
         }
     }
 
-    // handle change
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        dataUser[name] = value;
-    }
-
     // modifier un rôle
     const updateRole = (e, role) => {
         e.preventDefault();
 
-        currentRole.current = role;
+        setCurrentRole(role);
 
         setModalVisible(true);
         setModalTitle(`Modifier le rôle ## ${role.name} ##`);
 
-        setModalBody(
-            <div className="mb-3">
-                <div className="mb-3">
-                    <InputLabel
-                        htmlFor="name"
-                        text="Nom complet"
-                        required={true} />
-                    <input type="text"
-                        name="name"
-                        value={dataRole.name}
-                        className="form-control"
-                        id="name" placeholder={`Ex: ${role.name}`}
-                        onChange={(e) => handleChange(e)}
-                        required />
-                    {errors.name && <span className="text-danger">{errors.name}</span>}
-                </div>
-
-                {/* les permissions */}
-                <InputLabel
-                    htmlFor="name"
-                    text="Les permissions"
-                    required={true} />
-                <div className="mb-3">
-                    <input type="text" className="form-control rounded borded shadow my-2" placeholder="Faire une rechercher ..."
-                        // value={searchTerm}
-                        onChange={(e) => searchPermission(e)} />
-
-                    <ul className="list-group ">
-                        {
-                            allPermissions.map((permission, key) => (
-                                <li key={key} className="list-group-item d-flex justify-content-between align-items-start">
-                                    <div className="">{permission.description} - ({permission.name})</div>
-                                    <input type="checkbox"
-                                        name={`permission_${permission.id}`}
-                                        id={`permission_${permission.id}`}
-                                        checked={permission.checked}
-                                        onChange={(e) => {
-                                            const updatedPermissions = [...allPermissions];
-                                            updatedPermissions[key].checked = e.target.checked;
-                                            setAllPermissions(updatedPermissions);
-                                        }}
-                                    />
-                                </li>
-                            ))
-                        }
-                    </ul>
-                </div>
-            </div>
-        )
-
         // preciser la fonction de submit du modal
-        // submitFunction.current = handleUpdateSubmit;
+        submitFunction.current = handleUpdateSubmit;
 
         // preciser le text du bouton d'action du modal
         setActionText("Modifier le rôle")
     }
 
     /**
-     * Deleting a user
+     * Deleting a role
      */
-    const deleteUser = async (e, user) => {
+    const deleteRole = async (e, role) => {
         e.preventDefault();
 
         ConfirmAlert({
-            title: `Voulez-vous vraiment supprimer l'utilisateur ${user.name || user.email} ?`,
+            title: `Voulez-vous vraiment supprimer le rôle ${role.name || role.email} ?`,
             confirmButtonText: "Supprimer",
             denyButtonText: "Annuler",
             next: async () => {
                 try {
                     setLoading(true);
                     setStatus(null);
-                    const response = await axiosInstance.delete(apiRoutes.deleteUser(user?.id));
+                    const response = await axiosInstance.delete(apiRoutes.deleteRole(role?.id));
 
-                    console.log('Utilisateur supprimé avec succès !');
+                    console.log('Rôle supprimé avec succès !');
 
-                    const newUsers = await getUsers(); // actualiser la liste des utilisateurs
-                    console.log(`Users après suppression : ${JSON.stringify(newUsers)}`)
-                    setUsers(newUsers);
+                    const newRoles = await getRoles(); // actualiser la liste des rôles
+                    console.log(`Rôles après suppression : ${JSON.stringify(newRoles)}`)
+                    setRoles(newRoles);
                     setModalVisible(false);
                     setStatus('success');
-                    setMessage(`L'utilisateur ${user.name || user.email} a été supprimé avec succès!`);
+                    setMessage(`Le rôle ${role.name || role.email} a été supprimé avec succès!`);
                     setStatusCode(response.status);
 
-                    return navigate("/users/list");
+                    return navigate("/roles/list");
                 } catch (error) {
                     setLoading(false);
                     setStatus('error');
                     setStatusCode(error.response?.status);
 
-                    setMessage(`Erreure lors de la suppression de l'utilisateur ${user.name || user.email} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
+                    setMessage(`Erreure lors de la suppression du rôle ${role.name || role.email} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
                     console.log(`The error response : ${JSON.stringify(error.response)}`)
                 }
             }
@@ -291,8 +254,8 @@ const List = () => {
                                                 <CIcon className='me-2' icon={cilDialpad} /> Gérer
                                             </a>
                                             <ul className="dropdown-menu w-100">
-                                                <li><a className="dropdown-item text-warning" onClick={(e) => updateRole(e, role)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>
-                                                <li><a className="dropdown-item text-danger" onClick={(e) => deleteRole(e, role)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>
+                                                {checkPermission("role.edit") && <li><a className="dropdown-item text-warning" onClick={(e) => updateRole(e, role)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
+                                                {checkPermission("role.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteRole(e, role)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
                                             </ul>
                                         </div>
                                     </td>
@@ -302,11 +265,103 @@ const List = () => {
                     </tbody>
                 </table>
 
-                {/*  */}
-                <Modal
+                {/* Modal de modification */}
+                <CModal
                     visible={modalVisible}
-                    actionText={actionText}
-                    handleSubmit={submitFunction.current}></Modal>
+                    onClose={() => setModalVisible(false)}
+                    aria-labelledby="LiveDemoExampleLabel"
+                >
+                    <form onSubmit={(e) => handleUpdateSubmit(e)}>
+                        <CModalHeader>
+                            <CModalTitle >{modalTitle || 'Modal par défaut'}</CModalTitle>
+                        </CModalHeader>
+                        <CModalBody>
+                            <div className="mb-3">
+                                <div className="mb-3">
+                                    <InputLabel
+                                        htmlFor="name"
+                                        text="Nom complet"
+                                        required={true} />
+                                    <input type="text"
+                                        name="name"
+                                        value={dataRole.name}
+                                        className="form-control"
+                                        id="name" placeholder={`Ex: ${currentRole?.name}`}
+                                        onChange={(e) => setDataRole({ ...dataRole, name: e.target.value })}
+                                        required />
+                                    {errors.name && <span className="text-danger">{errors.name}</span>}
+                                </div>
+
+                                {/* les permissions */}
+                                <InputLabel
+                                    htmlFor="name"
+                                    text="Les permissions"
+                                    required={true} />
+
+                                <div className="mb-3">
+                                    {/* barre de recherche */}
+                                    <input type="text" className="form-control rounded borded shadow my-2" placeholder="Faire une rechercher ..."
+                                        onChange={(e) => setSearchTerm(e.target.value)} />
+
+                                    <ul className="list-group">
+                                        {
+                                            (filteredAllPermissions).map((permission, key) => (
+                                                <li key={key} className="list-group-item d-flex justify-content-between align-items-start">
+                                                    <div className="">{permission.description} - ({permission.name})</div>
+                                                    <input type="checkbox"
+                                                        checked={permission.checked}
+                                                        onChange={(e) => {
+                                                            const updatedPermissions = [...allPermissions];
+                                                            updatedPermissions[key].checked = e.target.checked;
+                                                            setDataRole({ ...dataRole, permissions: updatedPermissions.filter(p => p.checked) });
+                                                        }}
+                                                    />
+                                                </li>
+                                            ))
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </CModalBody>
+                        <CModalFooter>
+                            <CButton color="warning" onClick={() => setModalVisible(false)}>
+                                <CIcon icon={cilDelete} /> Fermer
+                            </CButton>
+                            <CButton color="dark" type="submit"> <CIcon icon={cilCheckCircle} /> {actionText}</CButton>
+                        </CModalFooter>
+                    </form>
+                </CModal>
+
+                {/* Modal des permissions */}
+                <CModal
+                    visible={modalPermissionsVisible}
+                    onClose={() => setModalPermissionsVisible(false)}
+                    aria-labelledby="LiveDemoExampleLabel"
+                >
+                    <CModalHeader>
+                        <CModalTitle >{modalTitle || 'Modal par défaut'}</CModalTitle>
+                    </CModalHeader>
+                    <CModalBody>
+                        <div className="mb-3">
+                            <input type="text" className="form-control rounded borded shadow my-2"
+                                placeholder="Faire une rechercher ..."
+                                onChange={(e) => setSearchRoleTerm(e.target.value)} />
+
+                            <ol className="list-group list-group-numbered">
+                                {
+                                    filteredRolePermissions?.map((permission, key) => (
+                                        <li key={key} className="list-group-item">{permission.description} - ({permission.name})</li>
+                                    ))
+                                }
+                            </ol>
+                        </div>
+                    </CModalBody>
+                    <CModalFooter>
+                        <CButton color="warning" onClick={() => setModalPermissionsVisible(false)}>
+                            <CIcon icon={cilDelete} /> Fermer
+                        </CButton>
+                    </CModalFooter>
+                </CModal>
             </Card>
         </>
     )

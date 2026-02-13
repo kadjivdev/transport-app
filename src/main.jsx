@@ -15,7 +15,6 @@ import StatusAlert from './components/Alerts/StatusAlert.jsx'
 import { BrowserRouter } from 'react-router-dom'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
     <BrowserRouter>
       <Provider store={store}>
         {/*  */}
@@ -27,5 +26,8 @@ createRoot(document.getElementById('root')).render(
         {/*  */}
       </Provider>
     </BrowserRouter>
-  </StrictMode>,
+  ,
+    // <StrictMode>
+
+  {/* </StrictMode> */}
 )

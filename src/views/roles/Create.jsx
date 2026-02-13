@@ -1,111 +1,144 @@
 import { cilList, cilSend } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Card from "src/components/Card";
-import CustomButton from "src/components/CustomButton";
 import LinkButton from "src/components/LinkButton";
 import InputLabel from "src/components/forms/InputLabel";
 import { useApp } from "../../AppContext";
 import { useNavigate } from "react-router-dom";
+import apiRoutes from "../../api/routes"
+import axiosInstance from "../../api/axiosInstance";
+import CustomButton from "src/components/CustomButton";
 
 const Create = () => {
-    const { register } = useApp()
-    const [errors, setErrors] = useState({ name: '', email: '', password: '', password_confirmation: '' });
+    const { setStatus, setMessage, setStatusCode, setLoading } = useApp();
 
     const navigate = useNavigate();
-    
-    const handleSubmit = async (e) => {
 
+    const allPers = JSON.parse(localStorage.getItem("all_permissions") || "[]");
+
+    const [allPermissions, setAllPermissions] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [dataRole, setDataRole] = useState({ name: '', permissions: allPermissions?.filter(p => p.checked) });
+    const [errors, setErrors] = useState({ name: '', permissions: '' });
+
+    // formattage des permissions pour les afficher dans le modal de modification d'un rôle
+    useEffect(() => {
+        setAllPermissions(allPers.map(permission => ({
+            id: permission.id,
+            name: permission.name,
+            description: permission.description,
+            checked: false
+        })));
+
+        console.log(`setAllPermissions role updated `)
+    }, []);
+
+    /**
+         * Création du rôle d'un utilisateur
+         */
+    const handleCreateSubmit = async (e) => {
         e.preventDefault();
 
-        const { name, email, password, password_confirmation } = e.target;
+        setLoading(true);
+        setStatus(null);
 
         try {
-            const response = await register({
-                name: name.value,
-                email: email.value,
-                password: password.value,
-                password_confirmation: password_confirmation.value
-            });
+            const response = await axiosInstance.post(apiRoutes.createRole, dataRole);
 
-            if (response.success) {
-                console.log('Utilisateur créé avec succès !');
-                e.target.reset();
-                setErrors({ name: '', email: '', password: '', password_confirmation: '' });
+            console.log('Rôle créé avec succès !');
+            setErrors({ name: '', permissions: '' });
 
-                // window.location.href = '/users/list';
-                return navigate("/users/list");
-            } else {
-                if (response.errors) {
-                    console.error('Erreurs de validation:', response?.errors);
-                    // Erreurs de validation
-                    setErrors(response?.errors);
-                } else {
-                    console.error('Erreur:', response.error);
-                    alert('Une erreur est survenue');
-                }
-            }
+            setStatus('success');
+            setMessage(`Le rôle a été créé avec succès!`);
+            setStatusCode(response.status);
+
+            return navigate("/roles/list");
         } catch (error) {
-            console.log('Erreur lors de la création de l\'utilisateur :', error.response);
+            setLoading(false);
+            setStatus('error');
+            setStatusCode(error.response?.status);
+
+            let errorMessage = '';
             if (error.response?.status === 422) {
-                console.error('Erreurs de validation:', error.response?.data?.errors);
-                // Erreurs de validation
-                setErrors(error.response?.data?.errors);
+                errorMessage = `Erreure de validation lors de la création du rôle : ${JSON.stringify(error.response?.data?.errors)}`;
+                setMessage(errorMessage);
+                setErrors(error.response?.data?.errors || { name: '', permissions: '' });
             } else {
-                console.error('Erreur:', error);
-                alert('Une erreur est survenue');
+                errorMessage = `Erreure lors de la crétion du rôle${JSON.stringify(error.response?.data?.error)}`;
+                setMessage(errorMessage);
+                setErrors({ name: '', permissions: '' });
             }
         }
     }
+
+    // rechercher une permission dans la liste des permissions d'un rôle
+    const filteredAllPermissions = allPermissions.filter(permission =>
+        permission.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        permission.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <>
             <div className="row">
                 <div className="col-md-2"></div>
                 <div className="col-md-8">
-                    <LinkButton route={"/users/list"}>
-                        <CIcon className='' icon={cilList} /> Liste des utilisateurs
+                    <LinkButton route={"/roles/list"}>
+                        <CIcon className='' icon={cilList} /> Liste des rôles
                     </LinkButton>
 
                     <Card>
-                        <form onSubmit={(e) => handleSubmit(e)}>
+                        <form onSubmit={(e) => handleCreateSubmit(e)}>
                             <div className="mb-3">
+                                <div className="mb-3">
+                                    <InputLabel
+                                        htmlFor="name"
+                                        text="Nom complet"
+                                        required={true} />
+                                    <input type="text"
+                                        name="name"
+                                        value={dataRole.name}
+                                        className="form-control"
+                                        id="name" placeholder={`Ex: Superviseur, Chauffeur, etc...`}
+                                        onChange={(e) => setDataRole({ ...dataRole, name: e.target.value })}
+                                        required />
+                                    {errors.name && <span className="text-danger">{errors.name}</span>}
+                                </div>
+
+                                {/* les permissions */}
                                 <InputLabel
                                     htmlFor="name"
-                                    text="Nom & Prénom"
+                                    text="Les permissions"
                                     required={true} />
-                                <input type="text" name="name" className="form-control" id="name" placeholder="Ex: Dohou Joe" autoFocus />
-                                {errors.name && <span className="text-danger">{errors.name}</span>}
-                            </div>
-                            <div className="mb-3">
-                                <InputLabel
-                                    htmlFor="email"
-                                    text="Email address"
-                                    required={true} />
-                                <input type="email" name="email" className="form-control" id="email" placeholder="Ex: joe@gmail.com" />
-                                {errors.email && <span className="text-danger">{errors.email}</span>}
-                            </div>
-                            <div className="mb-3">
-                                <InputLabel
-                                    htmlFor="password"
-                                    text="Mot de passe"
-                                    required={true} />
-                                <input type="password" name="password" className="form-control" id="password" placeholder="Ex : **************" />
-                                {errors.password && <span className="text-danger">{errors.password}</span>}
-                            </div>
-                            <div className="mb-3">
-                                <InputLabel
-                                    htmlFor="password_confirmation"
-                                    text="Confirmez le mot de passe" />
-                                <input type="password" name="password_confirmation" className="form-control" id="password_confirmation" placeholder="Ex : **************" />
-                                {errors.password_confirmation && <span className="text-danger">{errors.password_confirmation}</span>}
+
+                                <div className="mb-3">
+                                    {/* barre de recherche */}
+                                    <input type="text" className="form-control rounded borded shadow my-2" placeholder="Faire une rechercher ..."
+                                        onChange={(e) => setSearchTerm(e.target.value)} />
+
+                                    <ul className="list-group">
+                                        {
+                                            (filteredAllPermissions).map((permission, key) => (
+                                                <li key={key} className="list-group-item d-flex justify-content-between align-items-start">
+                                                    <div className="">{permission.description} - ({permission.name})</div>
+                                                    <input type="checkbox"
+                                                        checked={permission.checked}
+                                                        onChange={(e) => {
+                                                            const updatedPermissions = [...allPermissions];
+                                                            updatedPermissions[key].checked = e.target.checked;
+                                                            setDataRole({ ...dataRole, permissions: updatedPermissions.filter(p => p.checked) });
+                                                        }}
+                                                    />
+                                                </li>
+                                            ))
+                                        }
+                                    </ul>
+                                </div>
                             </div>
 
-                            <div className="">
-                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
-                            </div>
-                            <br /><br /><br />
+                            <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
                         </form>
+                        <br /><br /><br />
                     </Card>
                 </div>
                 <div className="col-md-2"></div>
