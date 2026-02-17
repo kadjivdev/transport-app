@@ -77,7 +77,6 @@ const List = () => {
      * Modification d'un client
      */
     const handleUpdateSubmit = async (e) => {
-        alert("submitting....")
         e.preventDefault()
 
         setLoading(true);

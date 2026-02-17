@@ -1,4 +1,6 @@
-import { cibAddthis, cilDialpad, cilLink, cilPencil, cilTrash } from "@coreui/icons";
+import { cibAddthis, cilCheckCircle, cilDelete, cilDialpad, cilLink, cilPencil, cilTrash } from "@coreui/icons";
+import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
+
 import CIcon from "@coreui/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Card from "src/components/Card";
@@ -14,8 +16,10 @@ import { useNavigate } from "react-router-dom";
 import ConfirmAlert from "../../hooks/ConfirmAlert";
 
 const List = () => {
-    const { setStatus, setLoading, setMessage, setStatusCode, modalVisible, setModalVisible, setModalTitle, setModalBody } = useApp();
+    const { setStatus, setLoading, setMessage, setStatusCode, modalVisible, setModalVisible, modalTitle, setModalTitle, setModalBody } = useApp();
+    // const { setStatus, setLoading, setMessage, setStatusCode, modalVisible, setModalVisible, modalTitle, setModalTitle, setModalBody } = useApp();
 
+    const [modalUpdateVisible, setModalUpdateVisible] = useState(false)
     const navigate = useNavigate();
 
     const allRoles = JSON.parse(localStorage.getItem("all_roles") || "[]");
@@ -88,8 +92,6 @@ const List = () => {
 
             return navigate("/users/list");
         } catch (error) {
-            alert(`Erreure lors de l'affectation du rôle à l'utilisateur ${currentUser.current?.name || currentUser.current?.email}`);
-            console.log(`The error response : ${JSON.stringify(error.response)}`)
             setStatus('error');
             setStatusCode(error.response?.status);
             if (error.response?.status == 422) {
@@ -132,7 +134,8 @@ const List = () => {
     /**
      * Modification du rôle d'un utilisateur
      */
-    const handleUpdateSubmit = async () => {
+    const handleUpdateSubmit = async (e) => {
+        e.preventDefault();
 
         setLoading(true);
         setStatus(null);
@@ -158,12 +161,12 @@ const List = () => {
             let errorMessage = '';
             if (error.response?.status === 422) {
                 errorMessage = `Erreure de validation lors de la modification de l'utilisateur ${currentUser.current?.name || currentUser.current?.email} : ${JSON.stringify(error.response?.data?.errors)}`;
-                setMessage(errorMessage);
-                setErrors(error.response?.data?.errors || { name: '', email: '', password: '', password_confirmation: '' });
             } else {
                 console.error('Erreur:', error);
-                alert('Une erreur est survenue');
+                errorMessage = error.response?.data;
             }
+            setMessage(errorMessage);
+            setErrors(error.response?.data?.errors || { name: '', email: '', password: '', password_confirmation: '' });
         }
     }
 
@@ -171,6 +174,11 @@ const List = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         dataUser[name] = value;
+
+        setDataUser((prev) => ({
+            ...prev,
+            [name]: value
+        }))
     }
 
     // modifier un rôle à un utilisateur
@@ -178,65 +186,15 @@ const List = () => {
         e.preventDefault();
 
         currentUser.current = user;
-        setModalVisible(true);
+        setDataUser(user)
+
+        setModalUpdateVisible(true);
         setModalTitle(`Modifier le rôle de l'utilisateur ## ${user.name || user.email} ##`);
 
-        console.log(`Data's user : ${JSON.stringify(dataUser)}`)
-
-        setModalBody(
-            <div className="mb-3">
-                <div className="mb-3">
-                    <InputLabel
-                        htmlFor="name"
-                        text="Nom & Prénom"
-                        required={true} />
-                    <input type="text"
-                        name="name"
-                        value={dataUser.name}
-                        className="form-control"
-                        id="name" placeholder={`Ex: ${user.name}`}
-                        onChange={(e) => handleChange(e)}
-                        required />
-                    {errors.name && <span className="text-danger">{errors.name}</span>}
-                </div>
-                <div className="mb-3">
-                    <InputLabel
-                        htmlFor="email"
-                        text="Email address"
-                        required={true} />
-                    <input type="email" name="email"
-                        className="form-control"
-                        id="email" placeholder={`Ex: ${user.email}`}
-                        onChange={(e) => handleChange(e)}
-                        required />
-                    {errors.email && <span className="text-danger">{errors.email}</span>}
-                </div>
-                <div className="mb-3">
-                    <InputLabel
-                        htmlFor="password"
-                        text="Mot de passe"
-                        required={true} />
-                    <input type="password" name="password"
-                        className="form-control" id="password" placeholder="Ex : **************"
-                        onChange={(e) => handleChange(e)}
-                        required />
-                    {errors.password && <span className="text-danger">{errors.password}</span>}
-                </div>
-                <div className="mb-3">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        text="Confirmez le mot de passe"
-                        required={true} />
-                    <input type="password" name="password_confirmation" className="form-control" id="password_confirmation" placeholder="Ex : **************"
-                        onChange={(e) => handleChange(e)}
-                        required />
-                    {errors.password && <span className="text-danger">{errors.password}</span>}
-                </div>
-            </div>
-        )
+        // console.log(`Data's user : ${JSON.stringify(dataUser)}`)
 
         // preciser la fonction de submit du modal
-        submitFunction.current = handleUpdateSubmit;
+        // submitFunction.current = handleUpdateSubmit;
 
         // preciser le text du bouton d'action du modal
         setActionText("Modifier l'utilisateur")
@@ -339,6 +297,78 @@ const List = () => {
                     visible={modalVisible}
                     actionText={actionText}
                     handleSubmit={submitFunction.current}></Modal>
+
+                {/* update modal */}
+                <CModal
+                    visible={modalUpdateVisible}
+                    onClose={() => setModalUpdateVisible(false)}
+                    aria-labelledby="LiveDemoExampleLabel"
+                >
+                    <form onSubmit={(e) => handleUpdateSubmit(e)}>
+                        <CModalHeader>
+                            <CModalTitle >{modalTitle || 'Modal par défaut'}</CModalTitle>
+                        </CModalHeader>
+                        <CModalBody>
+                            <div className="mb-3">
+                                <div className="mb-3">
+                                    <InputLabel
+                                        htmlFor="name"
+                                        text="Nom & Prénom"
+                                        required={true} />
+                                    <input type="text"
+                                        name="name"
+                                        value={dataUser.name}
+                                        className="form-control"
+                                        id="name" placeholder={`Ex: ${dataUser.name}`}
+                                        onChange={(e) => handleChange(e)}
+                                        required />
+                                    {errors.name && <span className="text-danger">{errors.name}</span>}
+                                </div>
+                                <div className="mb-3">
+                                    <InputLabel
+                                        htmlFor="email"
+                                        text="Email address"
+                                        required={true} />
+                                    <input type="email" name="email"
+                                        className="form-control"
+                                        value={dataUser.email}
+                                        id="email" placeholder={`Ex: ${dataUser.email}`}
+                                        onChange={(e) => handleChange(e)}
+                                        required />
+                                    {errors.email && <span className="text-danger">{errors.email}</span>}
+                                </div>
+                                <div className="mb-3">
+                                    <InputLabel
+                                        htmlFor="password"
+                                        text="Mot de passe"
+                                        required={false} />
+                                    <input type="password" name="password"
+                                        className="form-control" id="password"
+                                        placeholder="Ex : **************"
+                                        onChange={(e) => handleChange(e)}
+                                    />
+                                    {errors.password && <span className="text-danger">{errors.password}</span>}
+                                </div>
+                                <div className="mb-3">
+                                    <InputLabel
+                                        htmlFor="password_confirmation"
+                                        text="Confirmez le mot de passe"
+                                        required={false} />
+                                    <input type="password" name="password_confirmation" className="form-control" id="password_confirmation" placeholder="Ex : **************"
+                                        onChange={(e) => handleChange(e)}
+                                    />
+                                    {errors.password && <span className="text-danger">{errors.password}</span>}
+                                </div>
+                            </div>
+                        </CModalBody>
+                        <CModalFooter>
+                            <CButton color="warning" onClick={() => setModalVisible(false)}>
+                                <CIcon icon={cilDelete} /> Fermer
+                            </CButton>
+                            <CButton color="dark" type="submit"> <CIcon icon={cilCheckCircle} /> {actionText}</CButton>
+                        </CModalFooter>
+                    </form>
+                </CModal>
             </Card>
         </>
     )
