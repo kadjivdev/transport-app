@@ -213,8 +213,7 @@ const List = () => {
                                     <td>{client.createdAt}</td>
                                     <td>
                                         <div className="dropdown">
-                                            <a className="btn btn-dark w-100 dropdown-toggle btn-sm" role="button" data-bs-toggle="dropdown"
-                                                disabled={client.id == 1}>
+                                            <a className="btn btn-dark w-100 dropdown-toggle btn-sm" role="button" data-bs-toggle="dropdown">
                                                 <CIcon className='me-2' icon={cilDialpad} /> Gérer
                                             </a>
                                             <ul className="dropdown-menu w-100">

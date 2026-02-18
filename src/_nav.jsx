@@ -159,7 +159,7 @@ const _nav = [
       },
       {
         component: CNavItem,
-        name: 'Ajouter un client',
+        name: 'Ajouter un camion',
         to: '/camions/create',
       },
     ]

@@ -191,11 +191,6 @@ const List = () => {
         setModalUpdateVisible(true);
         setModalTitle(`Modifier le rôle de l'utilisateur ## ${user.name || user.email} ##`);
 
-        // console.log(`Data's user : ${JSON.stringify(dataUser)}`)
-
-        // preciser la fonction de submit du modal
-        // submitFunction.current = handleUpdateSubmit;
-
         // preciser le text du bouton d'action du modal
         setActionText("Modifier l'utilisateur")
     }
