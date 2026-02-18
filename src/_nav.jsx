@@ -10,6 +10,7 @@ import {
   cibR,
   cibSamsungPay,
   cibTrainerroad,
+  cilAlignCenter,
   cilSpeedometer,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
@@ -47,6 +48,26 @@ const _nav = [
         component: CNavItem,
         name: 'Ajouter une location',
         to: '/locations/create',
+      },
+
+      // les types de locations
+      {
+        component: CNavGroup,
+        name: 'Types de locations',
+        to: "/locations/types",
+        icon: <CIcon icon={cilAlignCenter} customClassName="nav-icon" />,
+        items: [
+          {
+            component: CNavItem,
+            name: 'Liste des types',
+            to: '/locations/types/list',
+          },
+          {
+            component: CNavItem,
+            name: 'Ajouter un type',
+            to: '/locations/types/create',
+          },
+        ]
       },
     ]
   },
@@ -159,7 +180,7 @@ const _nav = [
       },
       {
         component: CNavItem,
-        name: 'Ajouter un camion',
+        name: 'Ajouter un Camion',
         to: '/camions/create',
       },
     ]
@@ -205,25 +226,6 @@ const _nav = [
     ]
   },
 
-  // les types d'utilisateurs
-  {
-    component: CNavGroup,
-    name: 'Type de locations',
-    to: "/types",
-    icon: <CIcon icon={cibAutotask} customClassName="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Liste des types',
-        to: '/types/list',
-      },
-      {
-        component: CNavItem,
-        name: 'Ajouter un type',
-        to: '/types/create',
-      },
-    ]
-  },
 ]
 
 export default _nav

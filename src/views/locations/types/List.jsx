@@ -1,4 +1,4 @@
-import { cibAddthis, cilCheckCircle, cilDelete, cilDialpad, cilLink, cilPencil, cilTrash } from "@coreui/icons";
+import { cibAddthis, cilCheckCircle, cilDelete, cilDialpad, cilPencil, cilTrash } from "@coreui/icons";
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
 
 import CIcon from "@coreui/icons-react";
@@ -6,13 +6,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Card from "src/components/Card";
 import LinkButton from "src/components/LinkButton";
 import useDataTable from "src/hooks/useDataTable";
-import axiosInstance from "../../api/axiosInstance";
-import apiRoutes from "../../api/routes"
-import { useApp } from "../../AppContext";
-import { Modal } from "../../components/Modal";
+import axiosInstance from "../../../api/axiosInstance";
+import apiRoutes from "../../../api/routes"
+import { useApp } from "../../../AppContext";
+import { Modal } from "../../../components/Modal";
 import InputLabel from "src/components/forms/InputLabel";
 import { useNavigate } from "react-router-dom";
-import ConfirmAlert from "../../hooks/ConfirmAlert";
+import ConfirmAlert from "../../../hooks/ConfirmAlert";
 
 const List = () => {
     const { setStatus, setLoading, setMessage, setStatusCode, modalVisible, setModalVisible, modalTitle, setModalTitle } = useApp();
@@ -27,54 +27,54 @@ const List = () => {
     }
 
     const submitFunction = useRef(() => { });
-    const [camions, setCamions] = useState([]);
-    const [currentCamion, setCurrentCamion] = useState({});
+    const [types, setTypes] = useState([]);
+    const [currentType, setCurrentType] = useState({});
     const [actionText, setActionText] = useState("Enregistrer");
 
     // 
-    const [dataCamion, setDataCamion] = useState({ libelle: currentCamion?.libelle, immatriculation: currentCamion?.immatriculation});
-    const [errors, setErrors] = useState({ libelle: '', immatriculation: '' });
+    const [dataType, setDataType] = useState({ libelle: currentType?.libelle, description: currentType?.description });
+    const [errors, setErrors] = useState({ libelle: '', description: '' });
 
-    const getCamions = useCallback(async function () {
+    const getTypes = useCallback(async function () {
         try {
-            const response = await axiosInstance.get(apiRoutes.allCamion)
+            const response = await axiosInstance.get(apiRoutes.allLocationType)
 
-            setCamions(response?.data);
+            setTypes(response?.data);
 
-            console.log("Les camions :",response?.data)
+            console.log("Les types :", response?.data)
 
             setStatus('success');
             setStatusCode(response.status);
-            setMessage('Liste des camions chargés avec succès!');
+            setMessage('Liste des types chargés avec succès!');
 
             return response.data;
         } catch (error) {
             setStatus('error');
             setStatusCode(error.response?.status);
-            setMessage('Erreure lors du chargement des camions!!');
+            setMessage('Erreure lors du chargement des types!!');
             return [];
         }
     }, [])
 
     useEffect(() => {
-        setDataCamion({
-            libelle: currentCamion.libelle || "",
-            immatriculation: currentCamion.immatriculation || "",
+        setDataType({
+            libelle: currentType.libelle || "",
+            description: currentType.description || "",
         });
 
-        console.log("Camion", dataCamion)
-    }, [currentCamion]);
+        console.log("Type", dataType)
+    }, [currentType]);
 
     // Call DataTable
-    useDataTable('myTable', camions);
+    useDataTable('myTable', types);
 
     useEffect(function () {
-        // chargement des camions
-        getCamions()
+        // chargement des types
+        getTypes()
     }, [])
 
     /**
-     * Modification d'un client
+     * Modification d'un type
      */
     const handleUpdateSubmit = async (e) => {
         e.preventDefault()
@@ -82,37 +82,39 @@ const List = () => {
         setLoading(true);
         setStatus(null);
 
-        console.log("Current camion  called in handleUpdateSubmit:", currentCamion)
+        console.log("Current type  called in handleUpdateSubmit:", currentType)
 
         try {
-            const response = await axiosInstance.put(apiRoutes.updateCamion(currentCamion?.id), dataCamion);
+            const response = await axiosInstance.put(apiRoutes.updateLocationType(currentType?.id), dataType);
 
-            setErrors({ libelle: '', immatriculation: '' });
+            setErrors({ libelle: '', description: '' });
 
-            // actualiser la liste des camions
-            getCamions();
+            // actualiser la liste des types
+            getTypes();
 
             setModalVisible(false);
             setStatus('success');
-            setMessage(`Le client ${currentCamion.current?.libelle || currentCamion?.immatriculation} a été modifié avec succès!`);
+            setMessage(`Le client ${currentType.current?.libelle || currentType?.description} a été modifié avec succès!`);
             setStatusCode(response.status);
 
-            return navigate("/camions/list");
+            return navigate("/locations/types/list");
         } catch (error) {
 
             setLoading(false);
             setStatus('error');
             setStatusCode(error.response?.status);
 
+            console.log("Error :::", error)
+
             let errorMessage = '';
             if (error.response?.status === 422) {
-                errorMessage = `Erreure de validation lors de la modification du camion ${currentCamion?.libelle || currentCamion?.immatriculation} : ${JSON.stringify(error.response?.data?.errors)}`;
+                errorMessage = `Erreure de validation lors de la modification du type ${currentType?.libelle || currentType?.description} : ${JSON.stringify(error.response?.data?.errors)}`;
             } else {
-                errorMessage = `Erreure lors de la créaction du client ${currentCamion?.libelle || currentCamion?.immatriculation} : ${JSON.stringify(error.response?.data?.errors)}`;
+                errorMessage = `Erreure lors de la créaction du type ${currentType?.libelle || currentType?.description} `;
             }
 
             setMessage(errorMessage);
-            setErrors(error.response?.data?.errors || { libelle: '', immatriculation: '' });
+            setErrors(error.response?.data?.errors || { libelle: '', description: '' });
         }
     }
 
@@ -120,63 +122,63 @@ const List = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        setDataCamion(prev => ({
+        setDataType(prev => ({
             ...prev,
             [name]: value
         }));
     };
 
     // modifier un client
-    const updateCamion = (e, camion) => {
+    const updateLocationType = (e, type) => {
         e.preventDefault();
 
-        setCurrentCamion(camion)
+        setCurrentType(type)
 
-        console.log("Comming camion :", camion)
-        console.log("currentCamion current :", currentCamion)
-        console.log("Data camion from updateCamion :", dataCamion)
+        console.log("Comming type :", type)
+        console.log("currentType current :", currentType)
+        console.log("Data type from updateLocationType :", dataType)
 
         setModalVisible(true);
-        setModalTitle(`Modifier le Camion ## ${camion.libelle || camion.immatriculation} ##`);
+        setModalTitle(`Modifier le type ## ${type.libelle || type.description} ##`);
 
-        console.log(`Camion's data : ${JSON.stringify(dataCamion)}`)
+        console.log(`Type's data : ${JSON.stringify(dataType)}`)
 
         // preciser le text du bouton d'action du modal
-        setActionText("Modifier le camion")
+        setActionText("Modifier le type")
     }
 
     /**
      * Deleting a client
      */
-    const deleteCamion = async (e, camion) => {
+    const deleteLocationType = async (e, type) => {
         e.preventDefault();
 
         ConfirmAlert({
-            title: `Voulez-vous vraiment supprimer le camion ${camion.libelle || camion.immatriculation} ?`,
+            title: `Voulez-vous vraiment supprimer le camion ${type.libelle || type.description} ?`,
             confirmButtonText: "Supprimer",
             denyButtonText: "Annuler",
             next: async () => {
                 try {
                     setLoading(true);
                     setStatus(null);
-                    const response = await axiosInstance.delete(apiRoutes.deleteCamion(camion?.id));
+                    const response = await axiosInstance.delete(apiRoutes.deleteLocationType(type?.id));
 
-                    console.log('Camion supprimé avec succès !');
+                    console.log('Type supprimé avec succès !');
 
-                    await getCamions(); // actualiser la liste des camions
+                    await getTypes(); // actualiser la liste des types
 
                     setModalVisible(false);
                     setStatus('success');
-                    setMessage(`Le camion ${camion.libelle || camion.immatriculation} a été supprimé avec succès!`);
+                    setMessage(`Le type ${type.libelle || type.description} a été supprimé avec succès!`);
                     setStatusCode(response.status);
 
-                    return navigate("/camions/list");
+                    return navigate("/locations/types/list");
                 } catch (error) {
                     setLoading(false);
                     setStatus('error');
                     setStatusCode(error.response?.status);
 
-                    setMessage(`Erreure lors de la suppression du camion ${camion.libelle || camion.immatriculation} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
+                    setMessage(`Erreure lors de la suppression du type ${type.libelle || type.description} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
                     console.log(`The error response : ${JSON.stringify(error.response)}`)
                 }
             }
@@ -186,8 +188,8 @@ const List = () => {
     return (
         <>
             <Card>
-                <LinkButton route={"/camions/create"}>
-                    <CIcon className='' icon={cibAddthis} /> Ajouter un camion
+                <LinkButton route={"/locations/types/create"}>
+                    <CIcon className='' icon={cibAddthis} /> Ajouter un type de location
                 </LinkButton>
 
                 <table className="table table-striped bg-transparent" id="myTable">
@@ -195,27 +197,27 @@ const List = () => {
                         <tr>
                             <th scope="col">#</th>
                             <th scope="col">Libelle</th>
-                            <th scope="col">Immatriculation</th>
+                            <th scope="col">description</th>
                             <th scope="col">Crée le</th>
                             <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {
-                            camions.length > 0 ? camions.map((camion, key) => (
-                                <tr key={key} id={`row-${camion.id}`}>
+                            types.length > 0 ? types.map((type, key) => (
+                                <tr key={key} id={`row-${type.id}`}>
                                     <th scope="row">{key + 1}</th>
-                                    <td>{camion.libelle}</td>
-                                    <td>{camion.immatriculation}</td>
-                                    <td>{camion.createdAt}</td>
+                                    <td>{type.libelle}</td>
+                                    <td>{type.description}</td>
+                                    <td>{type.createdAt}</td>
                                     <td>
                                         <div className="dropdown">
                                             <a className="btn btn-dark w-100 dropdown-toggle btn-sm" role="button" data-bs-toggle="dropdown">
                                                 <CIcon className='me-2' icon={cilDialpad} /> Gérer
                                             </a>
                                             <ul className="dropdown-menu w-100">
-                                                {checkPermission("camion.edit") && <li><a className="dropdown-item text-warning" onClick={(e) => updateCamion(e, camion)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
-                                                {checkPermission("camion.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteCamion(e, camion)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
+                                                {checkPermission("location.edit") && <li><a className="dropdown-item text-warning" onClick={(e) => updateLocationType(e, type)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
+                                                {checkPermission("location.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteLocationType(e, type)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
                                             </ul>
                                         </div>
                                     </td>
@@ -249,26 +251,26 @@ const List = () => {
                                         required={true} />
                                     <input type="text"
                                         name="libelle"
-                                        value={dataCamion?.libelle}
+                                        value={dataType?.libelle}
                                         className="form-control"
-                                        id="libelle" placeholder={`Ex: ${currentCamion?.libelle}`}
+                                        id="libelle" placeholder={`Ex: ${currentType?.libelle}`}
                                         onChange={(e) => handleChange(e)}
                                         required />
                                     {errors?.libelle && <span className="text-danger">{errors?.libelle}</span>}
                                 </div>
                                 <div className="mb-3">
                                     <InputLabel
-                                        htmlFor="immatriculation"
-                                        text="Immatriculation"
+                                        htmlFor="description"
+                                        text="description"
                                         required={true} />
                                     <input type="text"
-                                        name="immatriculation"
-                                        value={dataCamion?.immatriculation}
+                                        name="description"
+                                        value={dataType?.description}
                                         className="form-control"
-                                        id="immatriculation" placeholder={`Ex: ${dataCamion?.immatriculation}`}
+                                        id="description" placeholder={`Ex: ${dataType?.description}`}
                                         onChange={(e) => handleChange(e)}
                                         required />
-                                    {errors?.immatriculation && <span className="text-danger">{errors?.immatriculation}</span>}
+                                    {errors?.description && <span className="text-danger">{errors?.description}</span>}
                                 </div>
                             </div>
                         </CModalBody>
