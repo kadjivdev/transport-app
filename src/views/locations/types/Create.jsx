@@ -13,8 +13,8 @@ import apiRoutes from "../../../api/routes"
 const Create = () => {
     const { setStatus, setLoading, setMessage, setStatusCode } = useApp();
 
-    const [dataType, setDataType] = useState({ libelle: '', description: '' });
-    const [errors, setErrors] = useState({ libelle: '', description: '' });
+    const [dataType, setDataType] = useState({ libelle: '', description: '' ,price:''});
+    const [errors, setErrors] = useState({ libelle: '', description: '' ,price:''});
 
     const navigate = useNavigate();
 
@@ -36,7 +36,7 @@ const Create = () => {
             const response = await axiosInstance.post(apiRoutes.createLocationType, dataType);
             console.log('Réponse du serveur après création du type :', response.data);
 
-            setErrors({ libelle: '', description: '' });
+            setErrors({ libelle: '', description: '' ,'price'});
 
             setStatus('success');
             setMessage(`Le type a été créé avec succès!`);
@@ -88,6 +88,20 @@ const Create = () => {
                                         onChange={(e) => handleChange(e)}
                                         required />
                                     {errors?.libelle && <span className="text-danger">{errors?.libelle}</span>}
+                                </div>
+                                <div className="mb-3">
+                                    <InputLabel
+                                        htmlFor="price"
+                                        text="Le prix"
+                                        required={true} />
+                                    <input type="number"
+                                        name="price"
+                                        value={dataType?.price}
+                                        className="form-control"
+                                        id="price"
+                                        onChange={(e) => handleChange(e)}
+                                        required />
+                                    {errors?.libelle && <span className="text-danger">{errors?.price}</span>}
                                 </div>
                                 <div className="mb-3">
                                     <InputLabel

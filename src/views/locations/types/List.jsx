@@ -197,6 +197,7 @@ const List = () => {
                         <tr>
                             <th scope="col">#</th>
                             <th scope="col">Libelle</th>
+                            <th scope="col">Prix</th>
                             <th scope="col">description</th>
                             <th scope="col">Crée le</th>
                             <th scope="col">Action</th>
@@ -208,8 +209,9 @@ const List = () => {
                                 <tr key={key} id={`row-${type.id}`}>
                                     <th scope="row">{key + 1}</th>
                                     <td>{type.libelle}</td>
+                                    <td>{type.price}</td>
                                     <td>{type.description}</td>
-                                    <td>{type.createdAt}</td>
+                                    <td>{type.created_at || '---'}</td>
                                     <td>
                                         <div className="dropdown">
                                             <a className="btn btn-dark w-100 dropdown-toggle btn-sm" role="button" data-bs-toggle="dropdown">
@@ -222,7 +224,7 @@ const List = () => {
                                         </div>
                                     </td>
                                 </tr>
-                            )) : <tr><td colSpan="5" className="text-center">Aucun camion n'a été trouvé</td></tr>
+                            )) : <tr><td colSpan="6" className="text-center">Aucun camion n'a été trouvé</td></tr>
                         }
                     </tbody>
                 </table>
@@ -257,6 +259,20 @@ const List = () => {
                                         onChange={(e) => handleChange(e)}
                                         required />
                                     {errors?.libelle && <span className="text-danger">{errors?.libelle}</span>}
+                                </div>
+                                <div className="mb-3">
+                                    <InputLabel
+                                        htmlFor="price"
+                                        text="Prix"
+                                        required={true} />
+                                    <input type="number"
+                                        name="price"
+                                        value={dataType?.price}
+                                        className="form-control"
+                                        id="price" placeholder={`Ex: ${currentType?.price}`}
+                                        onChange={(e) => handleChange(e)}
+                                        required />
+                                    {errors?.price && <span className="text-danger">{errors?.price}</span>}
                                 </div>
                                 <div className="mb-3">
                                     <InputLabel
