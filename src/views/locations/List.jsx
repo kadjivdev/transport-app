@@ -1,4 +1,4 @@
-import { cibAddthis, cilCheckCircle, cilCloudDownload, cilCut, cilDelete, cilDialpad, cilFile, cilList, cilPencil, cilTrash } from "@coreui/icons";
+import { cibAddthis, cilCheckCircle, cilCloudDownload, cilCut, cilDelete, cilDialpad, cilFile, cilList, cilPencil, cilSend, cilTrash } from "@coreui/icons";
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
 
 import CIcon from "@coreui/icons-react";
@@ -14,6 +14,8 @@ import InputLabel from "src/components/forms/InputLabel";
 import { useNavigate } from "react-router-dom";
 import ConfirmAlert from "../../hooks/ConfirmAlert";
 import Select from 'react-select'
+import CustomButton from "src/components/CustomButton";
+
 
 const List = () => {
     const { setStatus, setLoading, setMessage, setStatusCode, modalVisible, setModalVisible, modalTitle, setModalTitle, modalBody, setModalBody } = useApp();
@@ -21,6 +23,12 @@ const List = () => {
     const navigate = useNavigate();
 
     const currentUser = JSON.parse(localStorage.getItem("user") || "[]");
+
+    const formatToISO = (date) => {
+        if (!date) return "";
+        const [month, day, year] = date.split("/");
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    };
 
     // verification de permission
     const checkPermission = (name) => {
@@ -33,19 +41,46 @@ const List = () => {
     const [clients, setClients] = useState([]);
     const [types, setTypes] = useState([]);
     const [locations, setLocations] = useState([]);
-    const [currentLocation, setCurrentLocation] = useState({});
-    const [actionText, setActionText] = useState("Enregistrer");
+    const [camions, setCamions] = useState([]);
+    const [currentLocation, setCurrentLocation] = useState({
+        client_id: '',
+        location_type_id: '',
+        date: '',
+        date_location: '',
+        contrat: '',
+        details: [{
+            price: '',
+            camion_id: ''
+        },]
+    });
 
     // 
-    const [dataLocation, setDataLocation] = useState({ client_id: '', location_type_id: '', type_location_price: '', date_location: '', contrat: '', details: [] });
-    const [errors, setErrors] = useState({ client_id: '', location_type_id: '', type_location_price: '', date_location: '', contrat: '', details: [] });
+    const [dataLocation, setDataLocation] = useState({
+        client_id: '',
+        location_type_id: '',
+        date_location: '',
+        contrat: '',
+        details: [{
+            price: '',
+            camion_id: ''
+        },]
+    });
+    const [errors, setErrors] = useState({
+        client_id: '',
+        location_type_id: '',
+        date_location: '',
+        contrat: '',
+        details: [{
+            price: '',
+            camion_id: ''
+        },]
+    });
 
-    // les clients
     const getClients = useCallback(async function () {
         try {
             const response = await axiosInstance.get(apiRoutes.allClient)
 
-            setClients(response?.data);
+            setClients(response?.data || []);
 
             console.log("Les clients :", response?.data)
 
@@ -67,7 +102,7 @@ const List = () => {
         try {
             const response = await axiosInstance.get(apiRoutes.allLocationType)
 
-            setTypes(response?.data);
+            setTypes(response?.data || []);
 
             console.log("Les types :", response?.data)
 
@@ -80,6 +115,28 @@ const List = () => {
             setStatus('error');
             setStatusCode(error.response?.status);
             setMessage('Erreure lors du chargement des types!!');
+            return [];
+        }
+    }, [])
+
+    // les Camions
+    const getCamions = useCallback(async function () {
+        try {
+            const response = await axiosInstance.get(apiRoutes.allCamion)
+
+            setCamions(response?.data || []);
+
+            console.log("Les camions :", response?.data)
+
+            setStatus('success');
+            setStatusCode(response.status);
+            setMessage('Liste des camions chargés avec succès!');
+
+            return response.data;
+        } catch (error) {
+            setStatus('error');
+            setStatusCode(error.response?.status);
+            setMessage('Erreure lors du chargement des camions!!');
             return [];
         }
     }, [])
@@ -106,89 +163,31 @@ const List = () => {
         }
     }, [])
 
-    // Call DataTable
-    useDataTable('myTable', locations);
-
+    // initialisation des données
     useEffect(function () {
         // chargements des clients
         getClients();
         // chargement des types
         getTypes();
-        // chargement des locations
+        // chargement des camions
+        getCamions();
+        //chargmeents des locations
         getLocations();
     }, [])
 
+    // Call DataTable
+    useDataTable('myTable', locations);
+
+    // initialisation des datas au changeùent du currentLocation
     useEffect(() => {
-        setDataLocation(
-            {
-                client_id: '',
-                location_type_id: '',
-                type_location_price: '',
-                date_location: '',
-                contrat: '',
-                details: currentLocation.details
-            });
+        setDataLocation({
+            ...dataLocation,
+            date_location: currentLocation?.date.split("T")[0],
+            details: currentLocation?.details || []
+        });
 
-        console.log("Location", dataLocation)
-    }, [currentLocation]);
-
-    /**
-     * Modification d'une location
-     */
-    const handleUpdateSubmit = async (e) => {
-        e.preventDefault()
-
-        setLoading(true);
-        setStatus(null);
-
-        console.log("Current location  called in handleUpdateSubmit:", currentLocation)
-
-        try {
-            const response = await axiosInstance.put(apiRoutes.updateLocation(currentLocation?.id), dataLocation);
-
-            setErrors({
-                client_id: '',
-                location_type_id: '',
-                type_location_price: '',
-                date_location: '',
-                contrat: '',
-                details: ''
-            });
-
-            // actualiser la liste des types
-            get();
-
-            setModalVisible(false);
-            setStatus('success');
-            setMessage(`La location ${currentLocation?.reference} a été modifiée avec succès!`);
-            setStatusCode(response.status);
-
-            return navigate("/locations/list");
-        } catch (error) {
-            setLoading(false);
-            setStatus('error');
-            setStatusCode(error.response?.status);
-
-            console.log("Error :::", error)
-
-            let errorMessage = '';
-            if (error.response?.status === 422) {
-                errorMessage = `Erreure de validation lors de la modification de la location ${currentLocation?.reference} : ${JSON.stringify(error.response?.data?.errors)}`;
-            } else {
-                errorMessage = `Erreure lors de la créaction du type ${currentLocation?.reference} `;
-            }
-
-            setMessage(errorMessage);
-            setErrors(error.response?.data?.errors || {
-                client_id: '',
-                location_type_id: '',
-                type_location_price: '',
-                date_location: '',
-                contrat: '',
-                details: ''
-            });
-        }
-    }
+        console.log(`Current dataLocation : ${JSON.stringify(dataLocation)}`)
+    }, [currentLocation])
 
     // handle detail show
     const showDetail = (e, location) => {
@@ -196,48 +195,145 @@ const List = () => {
 
         setModalTitle(`Détails de la location ##${location.reference}`)
 
-        setModalBody(`
-            ${location.details?.map((detail, index) => (
-            <div className="align-items-center d-flex justify-content-between"
-                key={index}
-            >
-                <div className="">
-                    <input type="number"
-                        className="form-control"
-                        readOnly={true}
-                        value={detail.price} />
-                </div>
-                <div className="">
-                    <input type="text"
-                        className="form-control"
-                        readOnly={true}
-                        value={detail.camion?.libelle} />
-                </div>
-            </div>
-        ))}
-            
-            `)
-
         setModalVisible(true)
     };
 
-    // modifier un client
+    // modifier une location
     const updateLocation = (e, location) => {
         e.preventDefault();
 
+        console.log("updating location :", location)
+
         setCurrentLocation(location)
 
-        console.log("Comming location :", location)
-        console.log("currentLocation  :", currentLocation)
-        console.log("Data type from updateLocation :", dataLocation)
-
-        setModalVisible(true);
         setModalTitle(`Modifier la location ## ${location.reference} ##`);
+        setModalUpdateVisible(true);
 
-        console.log(`Location's data : ${JSON.stringify(dataLocation)}`)
+        console.log(`Location Current : ${JSON.stringify(currentLocation)}`)
+    }
 
-        // preciser le text du bouton d'action du modal
-        setActionText("Modifier la location")
+    // handle detail adding
+    const addDetail = (e) => {
+        e.preventDefault()
+
+        let newDetail = {
+            price: '',
+            camion_id: ''
+        }
+        setDataLocation({ ...dataLocation, details: [...dataLocation.details, newDetail] })
+    }
+
+    // handle detail removing
+    const removeDetail = (e, index) => {
+        e.preventDefault()
+
+        let fiteredDetails = dataLocation.details.filter((__, i) => i != index)
+        console.log("filtrerdDetails", fiteredDetails)
+        setDataLocation({ ...dataLocation, details: fiteredDetails })
+    }
+
+    // submit form
+    const handleUpdateSubmit = async (e) => {
+        e.preventDefault();
+
+        console.log('Données du location à modifier :', dataLocation);
+        setLoading(true);
+        setStatus(null);
+
+        try {
+            const formData = new FormData();
+
+            formData.append("client_id", dataLocation.client_id);
+            formData.append("location_type_id", dataLocation.location_type_id);
+            formData.append("date_location", dataLocation.date_location);
+
+            // Important : n'envoyer le fichier QUE si c'est un vrai File
+            if (dataLocation.contrat instanceof File) {
+                formData.append("contrat", dataLocation.contrat);
+            }
+
+            // si tu as un tableau details
+            formData.append("details", JSON.stringify(dataLocation.details));
+
+            formData.append('_method', 'PATCH');
+
+            const response = await axiosInstance.post(
+                apiRoutes.updateLocation(currentLocation?.id),
+                formData,
+                {
+                    headers: { "Content-Type": "multipart/form-data" }
+                }
+            );
+
+            console.log('Réponse du serveur après création de location :', response.data);
+
+            setErrors({
+                client_id: '',
+                location_type_id: '',
+                date_location: '',
+                contrat: '',
+                details: ''
+            });
+
+            setStatus('success');
+            setMessage(`La location a été modifiée avec succès!`);
+            setStatusCode(200);
+
+            return navigate("/locations/list");
+        } catch (error) {
+            console.log('Erreur lors de la modification de la location :', error);
+            let errMessage = '';
+
+            if (error.response?.status === 422) {
+                // Erreurs de validation
+                errMessage = `Des erreurs de validation sont survenues. Veuillez vérifier les champs `;
+            } else {
+                errMessage = `Une erreur inattendue est survenue. Veuillez réessayer. (${error.response?.data?.error || 'Erreure survenue'})`;
+            }
+
+            console.log(errMessage)
+            setLoading(false);
+            setStatus('error');
+            setMessage(errMessage);
+            setStatusCode(error.response?.status);
+            setErrors(error.response?.data?.errors);
+        }
+    }
+
+    // valider un elocation
+    const validate = async (e, location) => {
+        e.preventDefault()
+
+        ConfirmAlert({
+            title: `Voulez-vous vraiment valider la location ${location.reference} ?`,
+            confirmButtonText: "Valider",
+            denyButtonText: "Annuler",
+            next: async () => {
+                try {
+                    setLoading(true);
+                    setStatus(null);
+                    const response = await axiosInstance.post(apiRoutes.validateLocation(location.id));
+
+                    console.log('Location validée avec succès !');
+
+                    await getLocations(); // actualiser la liste des locations
+
+                    setModalVisible(false);
+                    setStatus('success');
+                    setMessage(`La location ${location.reference} a été validée avec succès!`);
+                    setStatusCode(response.status);
+
+                    return navigate("/locations/list");
+                } catch (error) {
+                    setLoading(false);
+                    setStatus('error');
+                    setStatusCode(error.response?.status);
+
+                    setMessage(`Erreure lors de la validation de la location ${location.reference} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
+                    console.log(`The error response : ${JSON.stringify(error.response)}`)
+                }
+            }
+        });
     }
 
     /**
@@ -254,7 +350,7 @@ const List = () => {
                 try {
                     setLoading(true);
                     setStatus(null);
-                    const response = await axiosInstance.delete(apiRoutes.deleteLocationType(location?.id));
+                    const response = await axiosInstance.delete(apiRoutes.deleteLocation(location?.id));
 
                     console.log('Location supprimée avec succès !');
 
@@ -294,6 +390,7 @@ const List = () => {
                             <th scope="col">Type</th>
                             <th scope="col">Date</th>
                             <th scope="col">Details</th>
+                            <th scope="col">Montant</th>
                             <th scope="col">Contrat</th>
                             <th scope="col">Inserée le</th>
                             <th scope="col">Inserée par</th>
@@ -312,6 +409,7 @@ const List = () => {
                                     <td>{location.type?.libelle || '---'}</td>
                                     <td>{location.date_location || '---'}</td>
                                     <td><button onClick={(e) => showDetail(e, location)} className="btn btn-sm shadow text-dark"><CIcon icon={cilList} /></button></td>
+                                    <td><button className="btn btn-sm shadow text-success" readOnly>{location.montant} </button></td>
                                     <td>
                                         {location.contrat ? <a href={location.contrat} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}
 
@@ -326,7 +424,8 @@ const List = () => {
                                                 <CIcon className='me-2' icon={cilDialpad} /> Gérer
                                             </a>
                                             <ul className="dropdown-menu w-100">
-                                                {checkPermission("location.edit") && <li><a className="dropdown-item text-warning" onClick={(e) => updateLocation(e, location)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
+                                                {checkPermission("location.edit") && !location.validatedAt && <li><a className="dropdown-item text-warning" onClick={(e) => updateLocation(e, location)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
+                                                {checkPermission("location.validate") && !location.validatedAt && <li><a className="dropdown-item text-success" onClick={(e) => validate(e, location)} ><CIcon className='me-2' icon={cilCheckCircle} /> Valider</a></li>}
                                                 {checkPermission("location.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteLocation(e, location)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
                                             </ul>
                                         </div>
@@ -337,60 +436,180 @@ const List = () => {
                     </tbody>
                 </table>
 
-                {/*  */}
-                <Modal
+                {/* Detail d'une location */}
+                <CModal
                     visible={modalVisible}
-                    actionText={actionText}
-                    handleSubmit={submitFunction.current}></Modal>
+                    onClose={() => setModalVisible(false)}
+                >
+                    <div className="p-3">
+                        <h3 className="">{modalTitle}</h3>
+                        {currentLocation.details?.map((detail, index) => (
+                            <div className="align-items-center d-flex justify-content-between m-1"
+                                key={index}
+                            >
+                                <div className="">
+                                    <input type="number"
+                                        className="form-control"
+                                        readOnly={true}
+                                        value={detail.price} />
+                                </div>
+                                <div className="">
+                                    <input type="text"
+                                        className="form-control"
+                                        readOnly={true}
+                                        value={detail.camion?.libelle} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </CModal>
 
+                {/* modification d'une location */}
                 <CModal
                     visible={modalUpdateVisible}
                     onClose={() => setModalUpdateVisible(false)}
                     aria-labelledby="LiveDemoExampleLabel"
                 >
-                    {/* <form onSubmit={(e) => handleUpdateSubmit(e)}>
-                        <CModalHeader>
-                            <CModalTitle >{modalTitle || 'Modal par défaut'}</CModalTitle>
-                        </CModalHeader>
-                        <CModalBody>
-                            <div className="mb-3">
-                                <div className="mb-3">
-                                    <InputLabel
-                                        htmlFor="libelle"
-                                        text="Libellé"
-                                        required={true} />
-                                    <input type="text"
-                                        name="libelle"
-                                        value={dataLocation?.libelle}
-                                        className="form-control"
-                                        id="libelle" placeholder={`Ex: ${currentType?.libelle}`}
-                                        onChange={(e) => handleChange(e)}
-                                        required />
-                                    {errors?.libelle && <span className="text-danger">{errors?.libelle}</span>}
+                    <form onSubmit={(e) => handleUpdateSubmit(e)} className="p-3">
+                        <h4 className="">{modalTitle}</h4>
+                        <div className="mb-3">
+                            <InputLabel
+                                htmlFor="client_id"
+                                text="Le Client"
+                                required={true} />
+                            <Select
+                                placeholder="Rechercher un client ..."
+                                name="client_id"
+                                id="client_id"
+                                required
+                                className="form-control mt-1 block w-full"
+                                options={clients.map((client) => ({
+                                    value: client.id,
+                                    label: `${client.nom} - ${client.prenom}`,
+                                }))}
+                                value={clients
+                                    .map((client) => ({
+                                        value: client.id,
+                                        label: `${client.nom} - ${client.prenom}`,
+                                    }))
+                                    .find((option) => option.value === dataLocation.client_id)} // set selected option
+                                onChange={(option) => setDataLocation({ ...dataLocation, client_id: option.value })} // update state with id
+                            />
+                            {errors.client_id && <span className="text-danger">{errors.client_id}</span>}
+                        </div>
+                        <div className="mb-3">
+                            <InputLabel
+                                htmlFor="location_type_id"
+                                text="Type de location"
+                                required={true} />
+                            <Select
+                                placeholder="Rechercher un type de location ..."
+                                name="location_type_id"
+                                id="location_type_id"
+                                required
+                                className="form-control mt-1 block w-full"
+                                options={types.map((type) => ({
+                                    value: type.id,
+                                    label: `${type.libelle}`,
+                                }))}
+                                value={types
+                                    .map((type) => ({
+                                        value: type.id,
+                                        label: `${type.libelle}`,
+                                    }))
+                                    .find((option) => option.value === dataLocation.location_type_id)} // set selected option
+                                onChange={(option) => setDataLocation({ ...dataLocation, location_type_id: option.value })} // update state with id
+                            />
+                            {errors.location_type_id && <span className="text-danger">{errors.location_type_id}</span>}
+                        </div>
+                        <div className="mb-3">
+                            <InputLabel
+                                htmlFor="date"
+                                text="Date de location"
+                                required={true} />
+                            <input type="date" name="date"
+                                className="form-control" id="date"
+                                value={dataLocation.date_location}
+                                onChange={(e) => setDataLocation({ ...dataLocation, date_location: e.target.value })}
+                                required />
+                            {errors.date && <span className="text-danger">{errors.date}</span>}
+                        </div>
+                        <div className="mb-3">
+                            <InputLabel
+                                htmlFor="contrat"
+                                text="Le contrat de location" />
+                            <input type="file" name="contrat"
+                                className="form-control" id="contrat"
+                                onChange={(e) => setDataLocation({ ...dataLocation, contrat: e.target.files[0] })} />
+                            {errors.contrat && <span className="text-danger">{errors.contrat}</span>}
+                        </div>
+
+                        {/* Details dela location */}
+                        <div className="mb-3">
+                            <button className="btn my-2 btn-sm btn-success text-white"
+                                onClick={(e) => addDetail(e)}>
+                                <CIcon icon={cibAddthis} />Ajouter un détail
+                            </button>
+                            {/* <br /> */}
+                            {dataLocation.details?.map((detail, index) => (
+                                <div className="align-items-center d-flex justify-content-between"
+                                    key={index}
+                                >
+                                    <div className="">
+                                        <InputLabel
+                                            text="Le prix "
+                                            required={true} />
+                                        <input type="number"
+                                            className="form-control"
+                                            required
+                                            placeholder="Ex: 30.000"
+                                            value={detail.price}
+                                            onChange={function (e) {
+                                                let allDetail = [...dataLocation.details]
+                                                allDetail[index].price = e.target.value
+                                                setDataLocation({ ...dataLocation, details: allDetail })
+                                            }} />
+                                    </div>
+                                    <div className="">
+                                        <InputLabel
+                                            text="Le Camion "
+                                            required={true} />
+                                        <Select
+                                            placeholder="Rechercher un Camion ..."
+                                            name="client_id"
+                                            id="client_id"
+                                            required
+                                            className="form-control mt-1 block w-full"
+                                            options={camions.map((camion) => ({
+                                                value: camion.id,
+                                                label: `${camion.libelle}`,
+                                            }))}
+                                            value={camions
+                                                .map((camion) => ({
+                                                    value: camion.id,
+                                                    label: `${camion.libelle}`,
+                                                }))
+                                                .find((option) => option.value === detail.camion_id)} // set selected option
+                                            onChange={function (option) {
+                                                let allDetail = [...dataLocation.details]
+                                                allDetail[index].camion_id = option.value
+                                                setDataLocation({ ...dataLocation, details: allDetail })
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="remove-btn">
+                                        <button className="btn btn-sm shadow btn-danger"
+                                            onClick={(e) => removeDetail(e, index)}> <CIcon icon={cilCut} /> </button>
+                                    </div>
                                 </div>
-                                <div className="mb-3">
-                                    <InputLabel
-                                        htmlFor="description"
-                                        text="description"
-                                        required={true} />
-                                    <input type="text"
-                                        name="description"
-                                        value={dataLocation?.description}
-                                        className="form-control"
-                                        id="description" placeholder={`Ex: ${dataLocation?.description}`}
-                                        onChange={(e) => handleChange(e)}
-                                        required />
-                                    {errors?.description && <span className="text-danger">{errors?.description}</span>}
-                                </div>
-                            </div>
-                        </CModalBody>
-                        <CModalFooter>
-                            <CButton color="warning" onClick={() => setModalVisible(false)}>
-                                <CIcon icon={cilDelete} /> Fermer
-                            </CButton>
-                            <CButton color="dark" type="submit"> <CIcon icon={cilCheckCircle} /> {actionText}</CButton>
-                        </CModalFooter>
-                    </form> */}
+                            ))}
+                        </div>
+                        <br />
+                        <div className="">
+                            <CustomButton newClass={'_btn-dark -w-100'} type="submit"> <CIcon icon={cilPencil} /> Modifier </CustomButton>
+                        </div>
+                        <br /><br /><br />
+                    </form>
                 </CModal>
             </Card>
         </>

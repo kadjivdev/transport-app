@@ -31,6 +31,7 @@ const myRoutes = {
   createLocation: `locations`,
   retrieveLocation: (id) => (`locations/${id}`),
   updateLocation: (id) => (`locations/${id}`),
+  validateLocation: (id) => (`locations/validate/${id}`),
   deleteLocation: (id) => (`locations/${id}`),
 
   // reglements's routes
@@ -38,6 +39,7 @@ const myRoutes = {
   createReglement: `reglements`,
   retrieveReglement: (id) => (`reglements/${id}`),
   updateReglement: (id) => (`reglements/${id}`),
+  validateReglement: (id) => (`reglements/validate/${id}`),
   deleteReglement: (id) => (`reglements/${id}`),
 
   // depenses's routes

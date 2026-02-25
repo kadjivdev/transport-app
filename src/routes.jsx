@@ -36,6 +36,12 @@ const Camion = {
   Create: React.lazy(() => import('./views/camions/Create')),
 }
 
+// reglements
+const Reglement = {
+  List: React.lazy(() => import('./views/reglements/List')),
+  Create: React.lazy(() => import('./views/reglements/Create')),
+}
+
 const routes = [
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
 
@@ -55,6 +61,9 @@ const routes = [
 
   { path: '/camions/list', name: 'Liste des camion', element: Camion.List },
   { path: '/camions/create', name: 'Ajouter un camion', element: Camion.Create },
+
+  { path: '/reglements/list', name: 'Liste des reglements', element: Reglement.List },
+  { path: '/reglements/create', name: 'Ajouter un reglement', element: Reglement.Create },
 ]
 
 /** My routes */
