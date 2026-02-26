@@ -385,18 +385,21 @@ const List = () => {
                     <thead>
                         <tr>
                             <th scope="col">#</th>
+                            <th scope="col">Action</th>
                             <th scope="col">Reference</th>
                             <th scope="col">Client</th>
                             <th scope="col">Type</th>
                             <th scope="col">Date</th>
                             <th scope="col">Details</th>
                             <th scope="col">Montant</th>
+                            <th scope="col">Réglé</th>
+                            <th scope="col">Reste</th>
                             <th scope="col">Contrat</th>
                             <th scope="col">Inserée le</th>
                             <th scope="col">Inserée par</th>
                             <th scope="col">Validée le</th>
                             <th scope="col">Validée par</th>
-                            <th scope="col">Action</th>
+                            <th scope="col">Commentaire</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -404,12 +407,27 @@ const List = () => {
                             locations.length > 0 ? locations.map((location, key) => (
                                 <tr key={key} id={`row-${location.id}`}>
                                     <th scope="row">{key + 1}</th>
+                                    <td>
+                                        {!location.validatedAt ?
+                                            <div className="dropdown">
+                                                <a className="btn btn-dark w-100 dropdown-toggle btn-sm" role="button" data-bs-toggle="dropdown">
+                                                    <CIcon className='me-2' icon={cilDialpad} /> Gérer
+                                                </a>
+                                                <ul className="dropdown-menu w-100">
+                                                    {checkPermission("location.edit") && !location.validatedAt && <li><a className="dropdown-item text-warning" onClick={(e) => updateLocation(e, location)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
+                                                    {checkPermission("location.validate") && !location.validatedAt && <li><a className="dropdown-item text-success" onClick={(e) => validate(e, location)} ><CIcon className='me-2' icon={cilCheckCircle} /> Valider</a></li>}
+                                                    {checkPermission("location.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteLocation(e, location)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
+                                                </ul>
+                                            </div> : '---'}
+                                    </td>
                                     <td>{location.reference}</td>
                                     <td>{`${location.client?.nom} - ${location.client?.prenom}`}</td>
                                     <td>{location.type?.libelle || '---'}</td>
                                     <td>{location.date_location || '---'}</td>
                                     <td><button onClick={(e) => showDetail(e, location)} className="btn btn-sm shadow text-dark"><CIcon icon={cilList} /></button></td>
                                     <td><button className="btn btn-sm shadow text-success" readOnly>{location.montant} </button></td>
+                                    <td><button className="btn btn-sm shadow text-success" readOnly>{location.regle} </button></td>
+                                    <td><button className="btn btn-sm shadow text-danger" readOnly>{location.reste} </button></td>
                                     <td>
                                         {location.contrat ? <a href={location.contrat} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}
 
@@ -419,19 +437,11 @@ const List = () => {
                                     <td>{location.validatedAt || '---'}</td>
                                     <td>{location.validatedBy?.name || '---'}</td>
                                     <td>
-                                        <div className="dropdown">
-                                            <a className="btn btn-dark w-100 dropdown-toggle btn-sm" role="button" data-bs-toggle="dropdown">
-                                                <CIcon className='me-2' icon={cilDialpad} /> Gérer
-                                            </a>
-                                            <ul className="dropdown-menu w-100">
-                                                {checkPermission("location.edit") && !location.validatedAt && <li><a className="dropdown-item text-warning" onClick={(e) => updateLocation(e, location)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
-                                                {checkPermission("location.validate") && !location.validatedAt && <li><a className="dropdown-item text-success" onClick={(e) => validate(e, location)} ><CIcon className='me-2' icon={cilCheckCircle} /> Valider</a></li>}
-                                                {checkPermission("location.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteLocation(e, location)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
-                                            </ul>
-                                        </div>
+                                        <textarea className="form-control" rows="2" placeholder={location.commentaire || '---'}></textarea>
                                     </td>
+
                                 </tr>
-                            )) : <tr><td colSpan="12" className="text-center">Aucune location n'a été trouvée</td></tr>
+                            )) : <tr><td colSpan="15" className="text-center">Aucune location n'a été trouvée</td></tr>
                         }
                     </tbody>
                 </table>

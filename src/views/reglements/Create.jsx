@@ -1,6 +1,6 @@
 import { cibAddthis, cilCut, cilList, cilSend } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Card from "src/components/Card";
 import CustomButton from "src/components/CustomButton";
 import LinkButton from "src/components/LinkButton";
@@ -10,13 +10,14 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
 import apiRoutes from "../../api/routes"
 import Select from 'react-select'
+import Swal from "sweetalert2";
 
 const Create = () => {
     const { setStatus, setLoading, setMessage, setStatusCode } = useApp();
 
     const [dataReglement, setDataReglement] = useState({
         location_id: "",
-        montant: "",
+        montant: '',
         preuve: "",
         commentaire: "",
     });
@@ -28,16 +29,18 @@ const Create = () => {
     });
 
     const [locations, setLocations] = useState([]);
+    const currentLocation = useRef([])
 
     // les locations
     const getLocations = useCallback(async function () {
         try {
             const response = await axiosInstance.get(apiRoutes.allLocation)
 
-            // seules les locations validées
-            setLocations(response?.data?.map((reglement) => reglement.validatedAt!=null) || []);
+            // juste les reglement déjà validés & ayant du reste à livrer
+            let data = response?.data?.filter((location) => (location.validatedAt && location._reste > 0)) || []
+            setLocations(data);
 
-            console.log("Les locations :", response?.data?.map((reglement) => reglement.validatedAt))
+            console.log("Les locations :", data)
 
             setStatus('success');
             setStatusCode(response.status);
@@ -62,6 +65,40 @@ const Create = () => {
     useEffect(() => (
         console.log("Data reglement :", dataReglement)
     ), [dataReglement]);
+
+    const handleLocationChange = (value) => {
+        let location = locations.find(loca => loca.id == value);
+        if (!location) return;
+
+        currentLocation.current = location
+
+        setDataReglement((prev) => ({
+            ...prev,
+            location_id: value, montant: location._reste
+        }));
+    }
+
+    // amount hundling...
+    const handleMontantChange = (value) => {
+
+        if (value > currentLocation.current?._reste) {
+            Swal.fire({
+                'title': 'Montant invalide',
+                text: `Le montant maximum restant est de : ${currentLocation.current?._reste}`
+            })
+
+            setDataReglement((prev) => ({
+                ...prev,
+                montant: value, montant: currentLocation.current?._reste
+            }));
+            return;
+        }
+
+        setDataReglement((prev) => ({
+            ...prev,
+            montant: value, montant: value
+        }));
+    }
 
     // submit form
     const handleSubmit = async (e) => {
@@ -140,12 +177,12 @@ const Create = () => {
                                     value={locations
                                         .map((location) => ({
                                             value: location.id,
-                                            label: `${location.nom} - ${location.prenom}`,
+                                            label: `${location.reference}`,
                                         }))
                                         .find((option) => option.value === dataReglement.location_id)} // set selected option
-                                    onChange={(option) => setDataReglement({ ...setDataReglement, reglement_id: option.value })} // update state with id
+                                    onChange={(option) => handleLocationChange(option.value)} // update state with id
                                 />
-                                {errors.reglement_id && <span className="text-danger">{errors.reglement_id}</span>}
+                                {errors.location_id && <span className="text-danger">{errors.location_id}</span>}
                             </div>
 
                             <div className="mb-3">
@@ -155,18 +192,35 @@ const Create = () => {
                                     required={true} />
                                 <input type="number" name="montant"
                                     className="form-control" id="montant"
-                                    onChange={(e) => setDataReglement({ ...dataReglement, montant: e.target.value })}
-                                    required />
+                                    value={dataReglement.montant}
+                                    placeholder="Ex: 50.000"
+                                    required
+                                    onChange={(e) => handleMontantChange(e.target.value)}
+                                />
                                 {errors.montant && <span className="text-danger">{errors.montant}</span>}
                             </div>
                             <div className="mb-3">
                                 <InputLabel
                                     htmlFor="preuve"
-                                    text="La preuve du reglement" />
+                                    text="La preuve du reglement"
+                                    required={true} />
                                 <input type="file" name="preuve"
                                     className="form-control" id="contrat"
+                                    required
                                     onChange={(e) => setDataReglement({ ...dataReglement, preuve: e.target.files[0] })} />
                                 {errors.preuve && <span className="text-danger">{errors.preuve}</span>}
+                            </div>
+
+                            <div className="mb-3">
+                                <InputLabel
+                                    htmlFor="commenatire"
+                                    text="Commentaire"
+                                    required={false} />
+                                <textarea name="commentaire" className="form-control"
+                                    rows="2"
+                                    placeholder="Laissez un commentaire ...."
+                                    onChange={(e) => setDataReglement({ ...dataReglement, commentaire: e.target.value })}></textarea>
+                                {errors.commentaire && <span className="text-danger">{errors.commentaire}</span>}
                             </div>
 
                             <br />

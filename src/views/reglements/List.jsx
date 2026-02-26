@@ -15,10 +15,10 @@ import { useNavigate } from "react-router-dom";
 import ConfirmAlert from "../../hooks/ConfirmAlert";
 import Select from 'react-select'
 import CustomButton from "src/components/CustomButton";
-
+import Swal from "sweetalert2";
 
 const List = () => {
-    const { setStatus, setLoading, setMessage, setStatusCode, modalVisible, setModalVisible, modalTitle, setModalTitle, modalBody, setModalBody } = useApp();
+    const { setStatus, setLoading, setMessage, setStatusCode, setModalVisible, modalTitle, setModalTitle } = useApp();
 
     const navigate = useNavigate();
 
@@ -39,6 +39,7 @@ const List = () => {
         preuve: "",
         commentaire: "",
     });
+    const currentLocation = useRef([])
 
     // 
     const [dataReglement, setDataReglement] = useState({
@@ -59,10 +60,11 @@ const List = () => {
         try {
             const response = await axiosInstance.get(apiRoutes.allLocation)
 
-            // juste les reglement déjà validés
-            setLocations(response?.data?.map((reglement) => reglement.validatedAt!=null) || []);
+            // juste les reglement déjà validés & ayant du reste à livrer
+            let data = response?.data?.filter((location) => (location.validatedAt && location._reste > 0)) || []
+            setLocations(data);
 
-            console.log("Les locations :", response?.data)
+            console.log("Les locations :", data)
 
             setStatus('success');
             setStatusCode(response.status);
@@ -76,7 +78,6 @@ const List = () => {
             return [];
         }
     }, [])
-
 
     // les reglements
     const getReglements = useCallback(async function () {
@@ -109,16 +110,54 @@ const List = () => {
     }, [])
 
     // Call DataTable
-    useDataTable('myTable', locations);
+    useDataTable('myTable', reglements);
 
     // initialisation des datas au changeùent du currentLocation
     useEffect(() => {
         setDataReglement({
-            ...dataReglement,
+            location_id: currentReglement?.location_id,
+            montant: currentReglement?.montant,
+            preuve: currentReglement?.preuve,
+            commentaire: currentReglement?.commentaire
         });
-
-        console.log(`Current dataReglement : ${JSON.stringify(dataReglement)}`)
     }, [currentReglement])
+
+    useEffect(() => (
+        console.log("Data reglement :", dataReglement)
+    ), [dataReglement]);
+
+    const handleLocationChange = (value) => {
+        let location = locations.find(loca => loca.id == value);
+        if (!location) return;
+
+        currentLocation.current = location
+
+        setDataReglement((prev) => ({
+            ...prev,
+            location_id: value, montant: location._reste
+        }));
+    }
+
+    // amount hundling...
+    const handleMontantChange = (value) => {
+        if (value > currentLocation.current?._reste) {
+            Swal.fire({
+                'title': 'Montant invalide',
+                text: `Le montant maximum restant est de : ${currentLocation.current?._reste}`
+            })
+
+            setDataReglement((prev) => ({
+                ...prev,
+                montant: value, montant: currentLocation.current?._reste
+            }));
+            return;
+        }
+
+        setDataReglement((prev) => ({
+            ...prev,
+            montant: value, montant: value
+        }));
+    }
 
     // modifier un reglement
     const updateReglement = (e, reglement) => {
@@ -128,7 +167,7 @@ const List = () => {
 
         setCurrentReglement(reglement)
 
-        setModalTitle(`Modifier la location ## ${location.reference} ##`);
+        setModalTitle(`Modifier le  reglement ## ${reglement.reference} ##`);
         setModalUpdateVisible(true);
 
         console.log(`Reglement Current : ${JSON.stringify(currentReglement)}`)
@@ -141,6 +180,14 @@ const List = () => {
         console.log('Données du reglement à modifier :', dataReglement);
         setLoading(true);
         setStatus(null);
+
+        if (dataReglement.montant > currentReglement.current?.location?.reste_a_regler) {
+            Swal.fire({
+                title: 'Montant invalide',
+                text: `Le montant maximum restant à régler sur cette location est de : ${currentReglement.current?.location?.reste_a_regler} FCFA`
+            })
+            return;
+        }
 
         try {
 
@@ -157,7 +204,7 @@ const List = () => {
 
             formData.append('_method', 'PATCH');
 
-            const response = await axiosInstance.post(
+            const response = await axiosInstance.patch(
                 apiRoutes.updateReglement(currentReglement?.id),
                 formData,
                 {
@@ -201,6 +248,14 @@ const List = () => {
     const validate = async (e, reglement) => {
         e.preventDefault()
 
+        if (reglement.montant > reglement.location?.reste_a_regler) {
+            Swal.fire({
+                title: 'Montant invalide',
+                text: `Le montant maximum restant à régler sur cette location est de : ${reglement.location?.reste_a_regler} FCFA`
+            })
+            return;
+        }
+
         ConfirmAlert({
             title: `Voulez-vous vraiment valider le reglement ${reglement.reference} ?`,
             confirmButtonText: "Valider",
@@ -209,7 +264,7 @@ const List = () => {
                 try {
                     setLoading(true);
                     setStatus(null);
-                    const response = await axiosInstance.post(apiRoutes.validateReglement (location.id));
+                    const response = await axiosInstance.post(apiRoutes.validateReglement(reglement.id));
 
                     console.log('Reglement validé avec succès !');
 
@@ -220,7 +275,7 @@ const List = () => {
                     setMessage(`Le reglement ${reglement.reference} a été validé avec succès!`);
                     setStatusCode(response.status);
 
-                    return navigate("/reglement/list");
+                    return navigate("/reglements/list");
                 } catch (error) {
                     setLoading(false);
                     setStatus('error');
@@ -258,7 +313,7 @@ const List = () => {
                     setMessage(`Le reglement ${reglement.reference} a été supprimé avec succès!`);
                     setStatusCode(response.status);
 
-                    return navigate("/reglement/list");
+                    return navigate("/reglements/list");
                 } catch (error) {
                     setLoading(false);
                     setStatus('error');
@@ -290,6 +345,7 @@ const List = () => {
                             <th scope="col">Inserée par</th>
                             <th scope="col">Validée le</th>
                             <th scope="col">Validée par</th>
+                            <th scope="col">Commentaire</th>
                             <th scope="col">Action</th>
                         </tr>
                     </thead>
@@ -309,19 +365,23 @@ const List = () => {
                                     <td>{reglement.validatedAt || '---'}</td>
                                     <td>{reglement.validatedBy?.name || '---'}</td>
                                     <td>
-                                        <div className="dropdown">
-                                            <a className="btn btn-dark w-100 dropdown-toggle btn-sm" role="button" data-bs-toggle="dropdown">
-                                                <CIcon className='me-2' icon={cilDialpad} /> Gérer
-                                            </a>
-                                            <ul className="dropdown-menu w-100">
-                                                {checkPermission("reglement.edit") && !reglement.validatedAt && <li><a className="dropdown-item text-warning" onClick={(e) => updateReglement(e, reglement)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
-                                                {checkPermission("reglement.validate") && !reglement.validatedAt && <li><a className="dropdown-item text-success" onClick={(e) => validate(e, reglement)} ><CIcon className='me-2' icon={cilCheckCircle} /> Valider</a></li>}
-                                                {checkPermission("reglement.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteReglement(e, reglement)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
-                                            </ul>
-                                        </div>
+                                        <textarea className="form-control" rows="1" placeholder={reglement.commentaire || '---'}></textarea>
+                                    </td>
+                                    <td>
+                                        {!reglement.validatedAt ?
+                                            <div className="dropdown">
+                                                <a className="btn btn-dark w-100 dropdown-toggle btn-sm" role="button" data-bs-toggle="dropdown">
+                                                    <CIcon className='me-2' icon={cilDialpad} /> Gérer
+                                                </a>
+                                                <ul className="dropdown-menu w-100">
+                                                    {checkPermission("reglement.edit") && !reglement.validatedAt && <li><a className="dropdown-item text-warning" onClick={(e) => updateReglement(e, reglement)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
+                                                    {checkPermission("reglement.validate") && !reglement.validatedAt && <li><a className="dropdown-item text-success" onClick={(e) => validate(e, reglement)} ><CIcon className='me-2' icon={cilCheckCircle} /> Valider</a></li>}
+                                                    {checkPermission("reglement.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteReglement(e, reglement)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
+                                                </ul>
+                                            </div> : '---'}
                                     </td>
                                 </tr>
-                            )) : <tr><td colSpan="10" className="text-center">Aucun reglement n'a été trouvé</td></tr>
+                            )) : <tr><td colSpan="11" className="text-center">Aucun reglement n'a été trouvé</td></tr>
                         }
                     </tbody>
                 </table>
@@ -333,11 +393,75 @@ const List = () => {
                     aria-labelledby="LiveDemoExampleLabel"
                 >
                     <form onSubmit={(e) => handleUpdateSubmit(e)} className="p-3">
-                        <h4 className="">{modalTitle}</h4>
-                        {/*  */}
+                        <h3>{modalTitle}</h3>
+                        <div className="mb-3">
+                            <InputLabel
+                                htmlFor="location"
+                                text="La location"
+                                required={true} />
+                            <Select
+                                placeholder="Rechercher une location ..."
+                                name="location_id"
+                                id="location_id"
+                                required
+                                className="form-control mt-1 block w-full"
+                                options={locations?.map((location) => ({
+                                    value: location.id,
+                                    label: `${location.reference}`,
+                                }))}
+                                value={locations
+                                    .map((location) => ({
+                                        value: location.id,
+                                        label: `${location.reference}`,
+                                    }))
+                                    .find((option) => option.value === currentReglement.location_id)} // set selected option
+                                onChange={(option) => handleLocationChange(option.value)} // update state with id
+                            />
+                            {errors.location_id && <span className="text-danger">{errors.location_id}</span>}
+                        </div>
+
+                        <div className="mb-3">
+                            <InputLabel
+                                htmlFor="montant"
+                                text="Montant du reglement"
+                                required={true} />
+                            <input type="number" name="montant"
+                                className="form-control" id="montant"
+                                value={dataReglement.montant}
+                                placeholder="Ex: 50.000"
+                                required
+                                onChange={(e) => handleMontantChange(e.target.value)}
+                            />
+                            {errors.montant && <span className="text-danger">{errors.montant}</span>}
+                        </div>
+                        <div className="mb-3">
+                            <InputLabel
+                                htmlFor="preuve"
+                                text="La preuve du reglement"
+                                required={false} />
+                            <input type="file" name="preuve"
+                                className="form-control" id="contrat"
+                                // required
+                                onChange={(e) => setDataReglement({ ...dataReglement, preuve: e.target.files[0] })} />
+                            {errors.preuve && <span className="text-danger">{errors.preuve}</span>}
+                        </div>
+
+                        <div className="mb-3">
+                            <InputLabel
+                                htmlFor="commenatire"
+                                text="Commentaire"
+                                required={false} />
+                            <textarea name="commentaire" className="form-control"
+                                rows="2"
+                                value={dataReglement.commentaire}
+                                placeholder="Laissez un commentaire ...."
+                                onChange={(e) => setDataReglement({ ...dataReglement, commentaire: e.target.value })}></textarea>
+                            {errors.commentaire && <span className="text-danger">{errors.commentaire}</span>}
+                        </div>
+
                         <br />
                         <div className="">
-                            <CustomButton newClass={'_btn-dark -w-100'} type="submit"> <CIcon icon={cilPencil} /> Modifier </CustomButton>
+                            <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
                         </div>
                         <br /><br /><br />
                     </form>
