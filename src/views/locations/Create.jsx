@@ -19,6 +19,7 @@ const Create = () => {
         location_type_id: '',
         date_location: '',
         contrat: '',
+        commentaire: '',
         details: [{
             price: '',
             camion_id: ''
@@ -29,6 +30,7 @@ const Create = () => {
         location_type_id: '',
         date_location: '',
         contrat: '',
+        commentaire: '',
         details: [{
             price: '',
             camion_id: ''
@@ -156,7 +158,17 @@ const Create = () => {
             });
             console.log('Réponse du serveur après création de la ocation :', response.data);
 
-            setErrors({ libelle: '', description: '' });
+            setErrors({
+                client_id: '',
+                location_type_id: '',
+                date_location: '',
+                contrat: '',
+                commentaire: '',
+                details: [{
+                    price: '',
+                    camion_id: ''
+                },]
+            })
 
             setStatus('success');
             setMessage(`La location a été créée avec succès!`);
@@ -171,15 +183,26 @@ const Create = () => {
                 // Erreurs de validation
                 setStatus('error');
                 errMessage = `Des erreurs de validation sont survenues. Veuillez vérifier les champs : ${Object.values(error.response?.data?.errors).join(', ')}`;
+                setErrors(error.response?.data?.errors);
             } else {
                 errMessage = `Une erreur inattendue est survenue. Veuillez réessayer. (${error.response?.data?.error || 'Erreure lors de la création du type'})`;
+                setErrors({
+                    client_id: '',
+                    location_type_id: '',
+                    date_location: '',
+                    contrat: '',
+                    commentaire: '',
+                    details: [{
+                        price: '',
+                        camion_id: ''
+                    },]
+                })
             }
 
             setLoading(false);
             setStatus('error');
             setMessage(errMessage);
             setStatusCode(error.response?.status);
-            setErrors(error.response?.data?.errors);
         }
     }
 
@@ -324,6 +347,17 @@ const Create = () => {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+
+                            {/* commentaire */}
+                            <div className="mb-3">
+                                <InputLabel
+                                    htmlFor="commenatire"
+                                    text="Commentaire" />
+                                <textarea className="form-control"
+                                    id="commentaire"
+                                    placeholder="Laissez un commentaire ...."
+                                    onChange={(e) => setDataLocation({ ...dataLocation, commentaire: e.target.value })}></textarea>
                             </div>
                             <br />
                             <div className="">

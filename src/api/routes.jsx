@@ -34,6 +34,9 @@ const myRoutes = {
   validateLocation: (id) => (`locations/validate/${id}`),
   deleteLocation: (id) => (`locations/${id}`),
 
+  // Statistiques
+  locationStatistique: `/locations/statistiques`,
+
   // reglements's routes
   allReglement: `reglements`,
   createReglement: `reglements`,
@@ -47,6 +50,7 @@ const myRoutes = {
   createDepense: `depenses`,
   retrieveDepense: (id) => (`depenses/${id}`),
   updateDepense: (id) => (`depenses/${id}`),
+  validateDepense: (id) => (`depenses/validate/${id}`),
   deleteDepense: (id) => (`depenses/${id}`),
 
   /**

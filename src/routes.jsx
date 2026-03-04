@@ -6,6 +6,7 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Location = {
   List: React.lazy(() => import('./views/locations/List')),
   Create: React.lazy(() => import('./views/locations/Create')),
+  Statistique: React.lazy(() => import('./views/locations/Statistiques')),
   Type: {
     List: React.lazy(() => import('./views/locations/types/List')),
     Create: React.lazy(() => import('./views/locations/types/Create')),
@@ -42,11 +43,18 @@ const Reglement = {
   Create: React.lazy(() => import('./views/reglements/Create')),
 }
 
+// depenses
+const Depense = {
+  List: React.lazy(() => import('./views/depenses/List')),
+  Create: React.lazy(() => import('./views/depenses/Create')),
+}
+
 const routes = [
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
 
   { path: '/locations/list', name: 'Liste des locations', element: Location.List },
   { path: '/locations/create', name: 'Ajouter une location', element: Location.Create },
+  { path: '/locations/statistiques', name: 'Liste des locations', element: Location.Statistique },
   { path: '/locations/types/list', name: 'Liste des types de location', element: Location.Type.List },
   { path: '/locations/types/create', name: 'Ajouter un type de location', element: Location.Type.Create },
 
@@ -64,6 +72,9 @@ const routes = [
 
   { path: '/reglements/list', name: 'Liste des reglements', element: Reglement.List },
   { path: '/reglements/create', name: 'Ajouter un reglement', element: Reglement.Create },
+
+  { path: '/depenses/list', name: 'Liste des depenses', element: Depense.List },
+  { path: '/depenses/create', name: 'Ajouter un depenses', element: Depense.Create },
 ]
 
 /** My routes */

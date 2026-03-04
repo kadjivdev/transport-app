@@ -48,6 +48,7 @@ const List = () => {
         date: '',
         date_location: '',
         contrat: '',
+        commentaire: '',
         details: [{
             price: '',
             camion_id: ''
@@ -60,6 +61,7 @@ const List = () => {
         location_type_id: '',
         date_location: '',
         contrat: '',
+        commentaire: '',
         details: [{
             price: '',
             camion_id: ''
@@ -70,6 +72,7 @@ const List = () => {
         location_type_id: '',
         date_location: '',
         contrat: '',
+        commentaire: '',
         details: [{
             price: '',
             camion_id: ''
@@ -271,6 +274,7 @@ const List = () => {
                 client_id: '',
                 location_type_id: '',
                 date_location: '',
+                commentaire: '',
                 contrat: '',
                 details: ''
             });
@@ -287,6 +291,7 @@ const List = () => {
             if (error.response?.status === 422) {
                 // Erreurs de validation
                 errMessage = `Des erreurs de validation sont survenues. Veuillez vérifier les champs `;
+                setErrors(error.response?.data?.errors);
             } else {
                 errMessage = `Une erreur inattendue est survenue. Veuillez réessayer. (${error.response?.data?.error || 'Erreure survenue'})`;
             }
@@ -296,7 +301,6 @@ const List = () => {
             setStatus('error');
             setMessage(errMessage);
             setStatusCode(error.response?.status);
-            setErrors(error.response?.data?.errors);
         }
     }
 
@@ -394,6 +398,7 @@ const List = () => {
                             <th scope="col">Montant</th>
                             <th scope="col">Réglé</th>
                             <th scope="col">Reste</th>
+                            <th scope="col">Depense</th>
                             <th scope="col">Contrat</th>
                             <th scope="col">Inserée le</th>
                             <th scope="col">Inserée par</th>
@@ -420,14 +425,15 @@ const List = () => {
                                                 </ul>
                                             </div> : '---'}
                                     </td>
-                                    <td>{location.reference}</td>
-                                    <td>{`${location.client?.nom} - ${location.client?.prenom}`}</td>
+                                    <td><span className="badge bg-light shadow border rounded text-dark"> {location.reference}</span></td>
+                                    <td><span className="">{`${location.client?.nom} - ${location.client?.prenom}`}</span></td>
                                     <td>{location.type?.libelle || '---'}</td>
                                     <td>{location.date_location || '---'}</td>
-                                    <td><button onClick={(e) => showDetail(e, location)} className="btn btn-sm shadow text-dark"><CIcon icon={cilList} /></button></td>
-                                    <td><button className="btn btn-sm shadow text-success" readOnly>{location.montant} </button></td>
-                                    <td><button className="btn btn-sm shadow text-success" readOnly>{location.regle} </button></td>
-                                    <td><button className="btn btn-sm shadow text-danger" readOnly>{location.reste} </button></td>
+                                    <td><span onClick={(e) => showDetail(e, location)} className="btn btn-sm shadow text-dark"><CIcon icon={cilList} /></span></td>
+                                    <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.montant} </span></td>
+                                    <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.regle} </span></td>
+                                    <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.reste} </span></td>
+                                    <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.depenseAmount}</span></td>
                                     <td>
                                         {location.contrat ? <a href={location.contrat} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}
 
@@ -441,7 +447,7 @@ const List = () => {
                                     </td>
 
                                 </tr>
-                            )) : <tr><td colSpan="15" className="text-center">Aucune location n'a été trouvée</td></tr>
+                            )) : <tr><td colSpan="17" className="text-center">Aucune location n'a été trouvée</td></tr>
                         }
                     </tbody>
                 </table>
@@ -614,6 +620,19 @@ const List = () => {
                                 </div>
                             ))}
                         </div>
+
+                        {/* commentaire */}
+                        <div className="mb-3">
+                            <InputLabel
+                                htmlFor="commenatire"
+                                text="Commentaire" />
+                            <textarea className="form-control"
+                                id="commentaire"
+                                placeholder="Laissez un commentaire ...."
+                                value={dataLocation.commentaire}
+                                onChange={(e) => setDataLocation({ ...dataLocation, commentaire: e.target.value })}></textarea>
+                        </div>
+
                         <br />
                         <div className="">
                             <CustomButton newClass={'_btn-dark -w-100'} type="submit"> <CIcon icon={cilPencil} /> Modifier </CustomButton>

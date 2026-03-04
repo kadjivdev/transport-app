@@ -126,17 +126,11 @@ const _nav = [
     items: [
       {
         component: CNavItem,
-        name: 'Statistique périodique',
-        to: '/statistiques/list',
-      },
-      {
-        component: CNavItem,
-        name: 'Statistique journalière',
-        to: '/statistiques/create',
-      },
+        name: 'Statistique',
+        to: '/locations/statistiques',
+      }
     ]
   },
-
 
   /**
    * Les parametrages

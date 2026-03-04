@@ -15,7 +15,7 @@ import Swal from "sweetalert2";
 const Create = () => {
     const { setStatus, setLoading, setMessage, setStatusCode } = useApp();
 
-    const [dataReglement, setDataReglement] = useState({
+    const [dataDepense, setDataDepense] = useState({
         location_id: "",
         montant: '',
         preuve: "",
@@ -29,15 +29,14 @@ const Create = () => {
     });
 
     const [locations, setLocations] = useState([]);
-    const currentLocation = useRef([])
 
     // les locations
     const getLocations = useCallback(async function () {
         try {
             const response = await axiosInstance.get(apiRoutes.allLocation)
 
-            // juste les reglement déjà validés & ayant du reste à livrer
-            let data = response?.data?.filter((location) => (location.validatedAt && location._reste > 0)) || []
+            // juste les locations déjà validés & ayant du reste à livrer
+            let data = response?.data?.filter((location) => location.validatedAt) || []
             setLocations(data);
 
             console.log("Les locations :", data)
@@ -63,40 +62,14 @@ const Create = () => {
     const navigate = useNavigate();
 
     useEffect(() => (
-        console.log("Data reglement :", dataReglement)
-    ), [dataReglement]);
-
-    const handleLocationChange = (value) => {
-        let location = locations.find(loca => loca.id == value);
-        if (!location) return;
-
-        currentLocation.current = location
-
-        setDataReglement((prev) => ({
-            ...prev,
-            location_id: value, montant: location._reste
-        }));
-    }
+        console.log("Data depense :", dataDepense)
+    ), [dataDepense]);
 
     // amount hundling...
     const handleMontantChange = (value) => {
-
-        if (value > currentLocation.current?._reste) {
-            Swal.fire({
-                'title': 'Montant invalide',
-                text: `Le montant maximum restant est de : ${currentLocation.current?._reste}`
-            })
-
-            setDataReglement((prev) => ({
-                ...prev,
-                montant: value, montant: currentLocation.current?._reste
-            }));
-            return;
-        }
-
-        setDataReglement((prev) => ({
+        setDataDepense((prev) => ({
             ...prev,
-            montant: value, montant: value
+            montant: value
         }));
     }
 
@@ -104,17 +77,17 @@ const Create = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log('Données du reglement à créer :', dataReglement);
+        console.log('Données de la depense à créer :', dataDepense);
         setLoading(true);
         setStatus(null);
 
         try {
-            const response = await axiosInstance.post(apiRoutes.createReglement, dataReglement, {
+            const response = await axiosInstance.post(apiRoutes.createDepense, dataDepense, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
             });
-            console.log('Réponse du serveur après création de la ocation :', response.data);
+            console.log('Réponse du serveur après création de la depense :', response.data);
 
             setErrors({
                 location_id: "",
@@ -124,12 +97,12 @@ const Create = () => {
             });
 
             setStatus('success');
-            setMessage(`Le reglement a été crée avec succès!`);
+            setMessage(`La depense a été crée avec succès!`);
             setStatusCode(200);
 
-            return navigate("/reglements/list");
+            return navigate("/depenses/list");
         } catch (error) {
-            console.log('Erreur lors de la création du reglement :', error);
+            console.log('Erreur lors de la création de la depense :', error);
             let errMessage = '';
 
             if (error.response?.status === 422) {
@@ -153,8 +126,8 @@ const Create = () => {
             <div className="row">
                 <div className="col-md-2"></div>
                 <div className="col-md-8">
-                    <LinkButton route={"/reglements/list"}>
-                        <CIcon className='' icon={cilList} /> Liste des reglements
+                    <LinkButton route={"/depenses/list"}>
+                        <CIcon className='' icon={cilList} /> Liste des dépenses
                     </LinkButton>
 
                     <Card>
@@ -179,8 +152,8 @@ const Create = () => {
                                             value: location.id,
                                             label: `${location.reference}`,
                                         }))
-                                        .find((option) => option.value === dataReglement.location_id)} // set selected option
-                                    onChange={(option) => handleLocationChange(option.value)} // update state with id
+                                        .find((option) => option.value === dataDepense.location_id)} // set selected option
+                                    onChange={(option) => setDataDepense({ ...dataDepense, location_id: option.value })} // update state with id
                                 />
                                 {errors.location_id && <span className="text-danger">{errors.location_id}</span>}
                             </div>
@@ -188,11 +161,11 @@ const Create = () => {
                             <div className="mb-3">
                                 <InputLabel
                                     htmlFor="montant"
-                                    text="Montant du reglement"
+                                    text="Montant de la dépense"
                                     required={true} />
                                 <input type="number" name="montant"
                                     className="form-control" id="montant"
-                                    value={dataReglement.montant}
+                                    value={dataDepense.montant}
                                     placeholder="Ex: 50.000"
                                     required
                                     onChange={(e) => handleMontantChange(e.target.value)}
@@ -207,7 +180,7 @@ const Create = () => {
                                 <input type="file" name="preuve"
                                     className="form-control" id="contrat"
                                     required
-                                    onChange={(e) => setDataReglement({ ...dataReglement, preuve: e.target.files[0] })} />
+                                    onChange={(e) => setDataDepense({ ...dataDepense, preuve: e.target.files[0] })} />
                                 {errors.preuve && <span className="text-danger">{errors.preuve}</span>}
                             </div>
 
@@ -219,7 +192,7 @@ const Create = () => {
                                 <textarea name="commentaire" className="form-control"
                                     rows="2"
                                     placeholder="Laissez un commentaire ...."
-                                    onChange={(e) => setDataReglement({ ...dataReglement, commentaire: e.target.value })}></textarea>
+                                    onChange={(e) => setDataDepense({ ...dataDepense, commentaire: e.target.value })}></textarea>
                                 {errors.commentaire && <span className="text-danger">{errors.commentaire}</span>}
                             </div>
 
