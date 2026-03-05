@@ -35,7 +35,6 @@ const List = () => {
         return currentUser?.permissions?.some(per => per.name == name);
     }
 
-    const submitFunction = useRef(() => { });
     const [modalUpdateVisible, setModalUpdateVisible] = useState(false);
 
     const [clients, setClients] = useState([]);
@@ -73,10 +72,7 @@ const List = () => {
         date_location: '',
         contrat: '',
         commentaire: '',
-        details: [{
-            price: '',
-            camion_id: ''
-        },]
+        details: ''
     });
 
     const getClients = useCallback(async function () {
@@ -181,16 +177,10 @@ const List = () => {
     // Call DataTable
     useDataTable('myTable', locations);
 
-    // initialisation des datas au changeùent du currentLocation
+    // Data Location
     useEffect(() => {
-        setDataLocation({
-            ...dataLocation,
-            date_location: currentLocation?.date.split("T")[0],
-            details: currentLocation?.details || []
-        });
-
-        console.log(`Current dataLocation : ${JSON.stringify(dataLocation)}`)
-    }, [currentLocation])
+        console.log(`DataLocation : `, dataLocation)
+    }, [dataLocation])
 
     // handle detail show
     const showDetail = (e, location) => {
@@ -205,14 +195,25 @@ const List = () => {
     const updateLocation = (e, location) => {
         e.preventDefault();
 
-        console.log("updating location :", location)
+        // console.log("updating location :", location)
 
         setCurrentLocation(location)
 
+        setDataLocation({
+            client_id: location.client?.id,
+            location_type_id: location.type?.id,
+            date_location: location.date.split("T")?.[0],
+            commentaire: location.commentaire ?? "",
+            details: location.details ?? [],
+            contrat: null
+        })
+
+        console.log("payload:", dataLocation)
+        console.log("details type:", typeof dataLocation.details)
+        console.log("isArray:", Array.isArray(dataLocation.details))
+
         setModalTitle(`Modifier la location ## ${location.reference} ##`);
         setModalUpdateVisible(true);
-
-        console.log(`Location Current : ${JSON.stringify(currentLocation)}`)
     }
 
     // handle detail adding
@@ -244,29 +245,33 @@ const List = () => {
         setStatus(null);
 
         try {
-            const formData = new FormData();
+            const formData = new FormData()
 
-            formData.append("client_id", dataLocation.client_id);
-            formData.append("location_type_id", dataLocation.location_type_id);
-            formData.append("date_location", dataLocation.date_location);
+            console.log("Data location in handleUpdateSubmit :", dataLocation)
 
-            // Important : n'envoyer le fichier QUE si c'est un vrai File
-            if (dataLocation.contrat instanceof File) {
-                formData.append("contrat", dataLocation.contrat);
+            formData.append("client_id", dataLocation.client_id)
+            formData.append("location_type_id", dataLocation.location_type_id)
+            formData.append("date_location", dataLocation.date_location)
+            formData.append("commentaire", dataLocation.commentaire)
+
+            if (dataLocation.contrat) {
+                formData.append("contrat", dataLocation.contrat)
             }
 
-            // si tu as un tableau details
-            formData.append("details", JSON.stringify(dataLocation.details));
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
 
-            formData.append('_method', 'PATCH');
+            dataLocation.details.forEach((detail, index) => {
+                formData.append(`details[${index}][camion_id]`, detail.camion_id)
+                formData.append(`details[${index}][price]`, detail.price)
+            })
 
-            const response = await axiosInstance.post(
-                apiRoutes.updateLocation(currentLocation?.id),
-                formData,
-                {
-                    headers: { "Content-Type": "multipart/form-data" }
-                }
-            );
+            for (let [key, value] of formData.entries()) {
+                console.log([key, value]);
+            }
+
+            const response = await axiosInstance.patch(apiRoutes.updateLocation(currentLocation?.id), formData);
 
             console.log('Réponse du serveur après création de location :', response.data);
 
@@ -281,7 +286,10 @@ const List = () => {
 
             setStatus('success');
             setMessage(`La location a été modifiée avec succès!`);
-            setStatusCode(200);
+            setStatusCode(response.status);
+
+            await getLocations();
+            setModalUpdateVisible(false);
 
             return navigate("/locations/list");
         } catch (error) {
@@ -410,7 +418,7 @@ const List = () => {
                     <tbody>
                         {
                             locations.length > 0 ? locations.map((location, key) => (
-                                <tr key={key} id={`row-${location.id}`}>
+                                <tr key={key}>
                                     <th scope="row">{key + 1}</th>
                                     <td>
                                         {!location.validatedAt ?
@@ -458,25 +466,27 @@ const List = () => {
                     onClose={() => setModalVisible(false)}
                 >
                     <div className="p-3">
-                        <h3 className="">{modalTitle}</h3>
-                        {currentLocation.details?.map((detail, index) => (
-                            <div className="align-items-center d-flex justify-content-between m-1"
-                                key={index}
-                            >
-                                <div className="">
-                                    <input type="number"
-                                        className="form-control"
-                                        readOnly={true}
-                                        value={detail.price} />
+                        <h5 className="">{modalTitle}</h5>
+                        {
+                            currentLocation.details?.length > 0 ? currentLocation.details?.map((detail, index) => (
+                                <div className="align-items-center d-flex justify-content-between m-1"
+                                    key={index}
+                                >
+                                    <div className="">
+                                        <input type="number"
+                                            className="form-control"
+                                            readOnly={true}
+                                            value={detail.price} />
+                                    </div>
+                                    <div className="">
+                                        <input type="text"
+                                            className="form-control"
+                                            readOnly={true}
+                                            value={detail.camion?.libelle} />
+                                    </div>
                                 </div>
-                                <div className="">
-                                    <input type="text"
-                                        className="form-control"
-                                        readOnly={true}
-                                        value={detail.camion?.libelle} />
-                                </div>
-                            </div>
-                        ))}
+                            )) : <p className="text-danger text-center">Aucun camion!</p>
+                        }
                     </div>
                 </CModal>
 
@@ -567,6 +577,8 @@ const List = () => {
                                 <CIcon icon={cibAddthis} />Ajouter un détail
                             </button>
                             {/* <br /> */}
+                            {errors.details && <p className="text-danger">{errors.details}</p>}
+
                             {dataLocation.details?.map((detail, index) => (
                                 <div className="align-items-center d-flex justify-content-between"
                                     key={index}

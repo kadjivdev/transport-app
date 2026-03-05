@@ -92,9 +92,17 @@ const Statistiques = () => {
             const response = await axiosInstance.post(apiRoutes.locationStatistique, { dates });
 
             let data = response.data
-            setLocations(data.locations)
 
-            console.log("Les locations filtrées :", JSON.stringify(data.locations.length))
+            if (response.status != 204) {
+                setLocations(data.locations)
+            } else {
+                setLocations([])
+            }
+
+            let references = data.locations?.map((location) => `<span>${location.reference}</span>`)
+
+            console.log("Les references :", JSON.stringify(references))
+            console.log("Les locations filtrées :", JSON.stringify(data.locations))
 
             setStatus('success');
             dates.date ?
@@ -173,7 +181,7 @@ const Statistiques = () => {
                                         <input type="date"
                                             name="fin"
                                             className="form-control"
-                                            onChange={(e) => setDates({ ...dates, debut: e.target.value })} />
+                                            onChange={(e) => setDates({ ...dates, fin: e.target.value })} />
                                     </div>
                                 </div>
                             </div>
@@ -215,8 +223,8 @@ const Statistiques = () => {
                     </thead>
                     <tbody>
                         {
-                            locations.length > 0 ? locations.map((location, key) => (
-                                <tr key={key} id={`row-${location.id}`}>
+                            locations?.length > 0 ? locations.map((location, key) => (
+                                <tr key={key}>
                                     <th scope="row">{key + 1}</th>
                                     <td><span className="badge bg-light shadow border rounded text-dark"> {location.reference}</span></td>
                                     <td><span className="">{`${location.client?.nom} - ${location.client?.prenom}`}</span></td>
@@ -237,6 +245,8 @@ const Statistiques = () => {
                         }
                     </tbody>
                 </table>
+
+                <br /><br /><br /><br />
             </Card>
         </>
     )

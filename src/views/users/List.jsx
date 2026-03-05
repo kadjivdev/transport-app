@@ -17,7 +17,6 @@ import ConfirmAlert from "../../hooks/ConfirmAlert";
 
 const List = () => {
     const { setStatus, setLoading, setMessage, setStatusCode, modalVisible, setModalVisible, modalTitle, setModalTitle, setModalBody } = useApp();
-    // const { setStatus, setLoading, setMessage, setStatusCode, modalVisible, setModalVisible, modalTitle, setModalTitle, setModalBody } = useApp();
 
     const [modalUpdateVisible, setModalUpdateVisible] = useState(false)
     const navigate = useNavigate();
@@ -40,8 +39,6 @@ const List = () => {
             const response = await axiosInstance.get(apiRoutes.allUser)
 
             setUsers(response?.data);
-
-            console.log(`Tous les utilisateurs : ${response.data.length}`)
 
             setStatus('success');
             setStatusCode(response.status);
@@ -115,7 +112,7 @@ const List = () => {
         console.log(`Selected user: ${user}`)
         console.log(`Current user: ${currentUser}`)
 
-        let options = allRoles.map(role => ({ value: role.id, label: role.name }));
+        let options = allRoles.filter((role) => role.id != 1).map(role => ({ value: role.id, label: role.name }));
         setModalBody(
             <div className="mb-3">
                 <Select

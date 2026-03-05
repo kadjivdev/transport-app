@@ -311,8 +311,12 @@ const List = () => {
                                                     <input type="checkbox"
                                                         checked={permission.checked}
                                                         onChange={(e) => {
-                                                            const updatedPermissions = [...allPermissions];
-                                                            updatedPermissions[key].checked = e.target.checked;
+                                                            let updatedPermissions = allPermissions.map(p => (
+                                                                p.id == permission.id ?
+                                                                    { ...p, checked: e.target.checked } : p
+                                                            ))
+                                                            setAllPermissions(updatedPermissions)
+
                                                             setDataRole({ ...dataRole, permissions: updatedPermissions.filter(p => p.checked) });
                                                         }}
                                                     />

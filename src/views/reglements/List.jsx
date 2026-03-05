@@ -33,13 +33,7 @@ const List = () => {
 
     const [locations, setLocations] = useState([]);
     const [reglements, setReglements] = useState([]);
-    const [currentReglement, setCurrentReglement] = useState({
-        location_id: "",
-        montant: "",
-        preuve: "",
-        commentaire: "",
-    });
-    const currentLocation = useRef([])
+    const [currentReglement, setCurrentReglement] = useState({ });
 
     // 
     const [dataReglement, setDataReglement] = useState({
@@ -61,7 +55,7 @@ const List = () => {
             const response = await axiosInstance.get(apiRoutes.allLocation)
 
             // juste les reglement déjà validés & ayant du reste à livrer
-            let data = response?.data?.filter((location) => (location.validatedAt && location._reste > 0)) || []
+            let data = response?.data?.filter((location) => (location.validatedAt && location.reste_a_regler > 0)) || []
             setLocations(data);
 
             console.log("Les locations :", data)
@@ -112,16 +106,6 @@ const List = () => {
     // Call DataTable
     useDataTable('myTable', reglements);
 
-    // initialisation des datas au changeùent du currentLocation
-    useEffect(() => {
-        setDataReglement({
-            location_id: currentReglement?.location_id,
-            montant: currentReglement?.montant,
-            preuve: currentReglement?.preuve,
-            commentaire: currentReglement?.commentaire
-        });
-    }, [currentReglement])
-
     useEffect(() => (
         console.log("Data reglement :", dataReglement)
     ), [dataReglement]);
@@ -130,32 +114,35 @@ const List = () => {
         let location = locations.find(loca => loca.id == value);
         if (!location) return;
 
-        currentLocation.current = location
+        currentReglement(location)
 
         setDataReglement((prev) => ({
             ...prev,
-            location_id: value, montant: location._reste
+            location_id: value, montant: location.reste_a_regler
         }));
     }
 
     // amount hundling...
     const handleMontantChange = (value) => {
-        if (value > currentLocation.current?._reste) {
+        console.log("the value :",value)
+        console.log("the current reglement :",currentReglement)
+
+        if (value > currentReglement.location?.reste_a_regler) {
             Swal.fire({
                 'title': 'Montant invalide',
-                text: `Le montant maximum restant est de : ${currentLocation.current?._reste}`
+                text: `Le montant maximum restant est de : ${currentReglement.location?.reste_a_regler}`
             })
 
             setDataReglement((prev) => ({
                 ...prev,
-                montant: value, montant: currentLocation.current?._reste
+                 montant: currentReglement.location?.reste_a_regler
             }));
             return;
         }
 
         setDataReglement((prev) => ({
             ...prev,
-            montant: value, montant: value
+            montant: value,
         }));
     }
 
@@ -163,14 +150,21 @@ const List = () => {
     const updateReglement = (e, reglement) => {
         e.preventDefault();
 
-        console.log("updating reglement :", reglement)
-
         setCurrentReglement(reglement)
+
+        console.log("The reglement : ", reglement)
+
+        setDataReglement({
+            location_id: reglement.location?.id,
+            montant: reglement.montant,
+            preuve: null,
+            commentaire: reglement.commentaire,
+        })
 
         setModalTitle(`Modifier le  reglement ## ${reglement.reference} ##`);
         setModalUpdateVisible(true);
 
-        console.log(`Reglement Current : ${JSON.stringify(currentReglement)}`)
+        // console.log(`Reglement Current : ${JSON.stringify(currentReglement)}`)
     }
 
     // submit form
@@ -181,36 +175,33 @@ const List = () => {
         setLoading(true);
         setStatus(null);
 
-        if (dataReglement.montant > currentReglement.current?.location?.reste_a_regler) {
+        if (dataReglement.montant > currentReglement.location?.reste_a_regler) {
             Swal.fire({
                 title: 'Montant invalide',
-                text: `Le montant maximum restant à régler sur cette location est de : ${currentReglement.current?.location?.reste_a_regler} FCFA`
+                text: `Le montant maximum restant à régler sur cette location est de : ${currentReglement.location?.reste_a_regler} FCFA`
             })
             return;
         }
 
         try {
 
-            const formData = new FormData();
+            const formData = new FormData()
 
-            formData.append("location_id", dataReglement.location_id);
-            formData.append("montant", dataReglement.montant);
-            formData.append("commentaire", dataReglement.commentaire);
+            console.log("Data location in handleUpdateSubmit :", dataReglement)
 
-            // Important : n'envoyer le fichier QUE si c'est un vrai File
-            if (dataReglement.preuve instanceof File) {
-                formData.append("preuve", dataReglement.preuve);
+            formData.append("location_id", dataReglement.location_id)
+            formData.append("montant", dataReglement.montant)
+            formData.append("commentaire", dataReglement.commentaire)
+
+            if (dataReglement.preuve) {
+                formData.append("preuve", dataReglement.preuve)
             }
 
-            formData.append('_method', 'PATCH');
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
 
-            const response = await axiosInstance.patch(
-                apiRoutes.updateReglement(currentReglement?.id),
-                formData,
-                {
-                    headers: { "Content-Type": "multipart/form-data" }
-                }
-            );
+            const response = await axiosInstance.patch(apiRoutes.updateReglement(currentReglement?.id), formData);
 
             setErrors({
                 location_id: "",
@@ -221,7 +212,9 @@ const List = () => {
 
             setStatus('success');
             setMessage(`Le reglement a été modifié avec succès!`);
-            setStatusCode(200);
+            setStatusCode(response?.status);
+
+            setModalUpdateVisible(false);
 
             return navigate("/reglement/list");
         } catch (error) {
@@ -235,12 +228,13 @@ const List = () => {
                 errMessage = `Une erreur inattendue est survenue. Veuillez réessayer. (${error.response?.data?.error || 'Erreure survenue'})`;
             }
 
-            console.log(errMessage)
             setLoading(false);
             setStatus('error');
             setMessage(errMessage);
             setStatusCode(error.response?.status);
             setErrors(error.response?.data?.errors);
+
+            setModalUpdateVisible(false);
         }
     }
 
@@ -393,7 +387,7 @@ const List = () => {
                     aria-labelledby="LiveDemoExampleLabel"
                 >
                     <form onSubmit={(e) => handleUpdateSubmit(e)} className="p-3">
-                        <h3>{modalTitle}</h3>
+                        <p>{modalTitle}</p>
                         <div className="mb-3">
                             <InputLabel
                                 htmlFor="location"
@@ -414,7 +408,7 @@ const List = () => {
                                         value: location.id,
                                         label: `${location.reference}`,
                                     }))
-                                    .find((option) => option.value === currentReglement.location_id)} // set selected option
+                                    .find((option) => option.value === dataReglement.location_id)} // set selected option
                                 onChange={(option) => handleLocationChange(option.value)} // update state with id
                             />
                             {errors.location_id && <span className="text-danger">{errors.location_id}</span>}

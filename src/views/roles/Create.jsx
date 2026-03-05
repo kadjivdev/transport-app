@@ -35,8 +35,8 @@ const Create = () => {
     }, []);
 
     /**
-         * Création du rôle d'un utilisateur
-         */
+     * Création du rôle d'un utilisateur
+     */
     const handleCreateSubmit = async (e) => {
         e.preventDefault();
 
@@ -118,14 +118,17 @@ const Create = () => {
 
                                     <ul className="list-group">
                                         {
-                                            (filteredAllPermissions).map((permission, key) => (
+                                            filteredAllPermissions?.map((permission, key) => (
                                                 <li key={key} className="list-group-item d-flex justify-content-between align-items-start">
                                                     <div className="">{permission.description} - ({permission.name})</div>
                                                     <input type="checkbox"
                                                         checked={permission.checked}
                                                         onChange={(e) => {
-                                                            const updatedPermissions = [...allPermissions];
-                                                            updatedPermissions[key].checked = e.target.checked;
+                                                            let updatedPermissions = allPermissions.map(p => (
+                                                                p.id == permission.id ?
+                                                                    { ...p, checked: e.target.checked } : p
+                                                            ))
+                                                            setAllPermissions(updatedPermissions)
                                                             setDataRole({ ...dataRole, permissions: updatedPermissions.filter(p => p.checked) });
                                                         }}
                                                     />
