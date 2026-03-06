@@ -247,8 +247,6 @@ const List = () => {
         try {
             const formData = new FormData()
 
-            console.log("Data location in handleUpdateSubmit :", dataLocation)
-
             formData.append("client_id", dataLocation.client_id)
             formData.append("location_type_id", dataLocation.location_type_id)
             formData.append("date_location", dataLocation.date_location)
@@ -258,20 +256,13 @@ const List = () => {
                 formData.append("contrat", dataLocation.contrat)
             }
 
-            for (let [key, value] of formData.entries()) {
-                console.log(key, value);
-            }
-
             dataLocation.details.forEach((detail, index) => {
                 formData.append(`details[${index}][camion_id]`, detail.camion_id)
                 formData.append(`details[${index}][price]`, detail.price)
             })
 
-            for (let [key, value] of formData.entries()) {
-                console.log([key, value]);
-            }
-
-            const response = await axiosInstance.patch(apiRoutes.updateLocation(currentLocation?.id), formData);
+            formData.append("_method", "PATCH");
+            const response = await axiosInstance.post(apiRoutes.updateLocation(currentLocation?.id), formData);
 
             console.log('Réponse du serveur après création de location :', response.data);
 

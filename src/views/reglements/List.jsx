@@ -33,7 +33,7 @@ const List = () => {
 
     const [locations, setLocations] = useState([]);
     const [reglements, setReglements] = useState([]);
-    const [currentReglement, setCurrentReglement] = useState({ });
+    const [currentReglement, setCurrentReglement] = useState({});
 
     // 
     const [dataReglement, setDataReglement] = useState({
@@ -54,8 +54,10 @@ const List = () => {
         try {
             const response = await axiosInstance.get(apiRoutes.allLocation)
 
+            console.log("Les locations à l'initiation : ", response.data)
+
             // juste les reglement déjà validés & ayant du reste à livrer
-            let data = response?.data?.filter((location) => (location.validatedAt && location.reste_a_regler > 0)) || []
+            let data = response?.data?.filter((location) => (location.validatedAt && location._reste > 0)) || []
             setLocations(data);
 
             console.log("Les locations :", data)
@@ -118,14 +120,14 @@ const List = () => {
 
         setDataReglement((prev) => ({
             ...prev,
-            location_id: value, montant: location.reste_a_regler
+            location_id: value, montant: location._reste
         }));
     }
 
     // amount hundling...
     const handleMontantChange = (value) => {
-        console.log("the value :",value)
-        console.log("the current reglement :",currentReglement)
+        console.log("the value :", value)
+        console.log("the current reglement :", currentReglement)
 
         if (value > currentReglement.location?.reste_a_regler) {
             Swal.fire({
@@ -135,7 +137,7 @@ const List = () => {
 
             setDataReglement((prev) => ({
                 ...prev,
-                 montant: currentReglement.location?.reste_a_regler
+                montant: currentReglement.location?.reste_a_regler
             }));
             return;
         }
@@ -161,7 +163,7 @@ const List = () => {
             commentaire: reglement.commentaire,
         })
 
-        setModalTitle(`Modifier le  reglement ## ${reglement.reference} ##`);
+        setModalTitle(`Modifier le reglement ## ${reglement.reference} ##`);
         setModalUpdateVisible(true);
 
         // console.log(`Reglement Current : ${JSON.stringify(currentReglement)}`)
@@ -197,11 +199,12 @@ const List = () => {
                 formData.append("preuve", dataReglement.preuve)
             }
 
-            for (let [key, value] of formData.entries()) {
-                console.log(key, value);
-            }
+            // for (let [key, value] of formData.entries()) {
+            //     console.log(key, value);
+            // }
 
-            const response = await axiosInstance.patch(apiRoutes.updateReglement(currentReglement?.id), formData);
+            formData.append("_method", "PATCH");
+            const response = await axiosInstance.post(apiRoutes.updateReglement(currentReglement?.id), formData);
 
             setErrors({
                 location_id: "",
@@ -214,9 +217,11 @@ const List = () => {
             setMessage(`Le reglement a été modifié avec succès!`);
             setStatusCode(response?.status);
 
+            await getReglements();
+
             setModalUpdateVisible(false);
 
-            return navigate("/reglement/list");
+            return navigate("/reglements/list");
         } catch (error) {
             console.log('Erreur lors de la modification du reglement :', error);
             let errMessage = '';
@@ -224,6 +229,7 @@ const List = () => {
             if (error.response?.status === 422) {
                 // Erreurs de validation
                 errMessage = `Des erreurs de validation sont survenues. Veuillez vérifier les champs `;
+                setErrors(error.response?.data?.errors);
             } else {
                 errMessage = `Une erreur inattendue est survenue. Veuillez réessayer. (${error.response?.data?.error || 'Erreure survenue'})`;
             }
@@ -232,9 +238,8 @@ const List = () => {
             setStatus('error');
             setMessage(errMessage);
             setStatusCode(error.response?.status);
-            setErrors(error.response?.data?.errors);
 
-            setModalUpdateVisible(false);
+            // setModalUpdateVisible(false);
         }
     }
 
@@ -435,7 +440,7 @@ const List = () => {
                                 required={false} />
                             <input type="file" name="preuve"
                                 className="form-control" id="contrat"
-                                // required
+                                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
                                 onChange={(e) => setDataReglement({ ...dataReglement, preuve: e.target.files[0] })} />
                             {errors.preuve && <span className="text-danger">{errors.preuve}</span>}
                         </div>
