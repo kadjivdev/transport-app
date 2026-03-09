@@ -2,6 +2,9 @@
 const baseUrl = import.meta.env.VITE_LOGIN_API_URL
 
 const myRoutes = {
+  // dashbaord
+  dashbaord: "dashboard",
+
   // auth routes
   login: `login`,
   logout: `logout`,

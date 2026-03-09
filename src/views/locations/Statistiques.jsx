@@ -10,60 +10,47 @@ import { useApp } from "../../AppContext";
 import InputLabel from "src/components/forms/InputLabel";
 import { useNavigate } from "react-router-dom";
 import CustomButton from "src/components/CustomButton";
-
+import Select from 'react-select'
 
 const Statistiques = () => {
     const { setStatus, setLoading, setMessage, setStatusCode } = useApp();
 
     const navigate = useNavigate();
 
-    const [clients, getClients] = useState([]);
+    const [clients, setClients] = useState([]);
     const [locations, setLocations] = useState([]);
     // 
-    const [dates, setDates] = useState({
-        date: '',
-        debut: '',
-        fin: '',
-    });
+    const [data, setData] = useState({});
 
     useEffect(() => {
-        console.log("The dates : ", dates)
-    }, [dates])
+        console.log("The data : ", data)
+    }, [data])
 
     // Gestion des totaux
     const [totalAmount, setTotalAmount] = useState(0);
     const [resteAregler, setResteAregler] = useState(0);
     const [regler, setRegler] = useState(0);
     const [depenseAmount, setDepenseAmount] = useState(0);
+    const [client, setClient] = useState(null)
 
-    // les locations
-    const getLocations = useCallback(async function () {
+    // les clients
+    const getClients = useCallback(async function () {
         try {
-            const response = await axiosInstance.post(apiRoutes.locationStatistique, {})
+            const response = await axiosInstance.get(apiRoutes.allClient)
 
-            let data = response.data
-            console.log("les datas après getLocations :", data)
-            setLocations(data.locations)
+            setClients(response?.data || []);
 
-            // synchronisation des totaux
-            setTotalAmount(data?.totaux?.total_amount);
-            setResteAregler(data?.totaux?.total_reste_a_regler);
-            setRegler(data?.totaux?.total_regler);
-            setResteAregler(data?.totaux?.total_reste_a_regler);
-            setDepenseAmount(data?.totaux?.total_depense_amount);
+            console.log("Les clients :", response?.data)
 
             setStatus('success');
-            dates.date ?
-                setMessage(`Locations éffectuées pour la date du ${dates.date}`) :
-                setMessage(`Locations éffectuées entre ${dates.debut} a ${dates.fin}`)
             setStatusCode(response.status);
-            setMessage('Liste des locations chargées avec succès!');
+            setMessage('Liste des clients chargés avec succès!');
 
             return response.data;
         } catch (error) {
             setStatus('error');
             setStatusCode(error.response?.status);
-            setMessage('Erreure lors du chargement des locations!!');
+            setMessage('Erreure lors du chargement des clients!!');
             return [];
         }
     }, [])
@@ -72,51 +59,56 @@ const Statistiques = () => {
     useEffect(function () {
         // chargements des clients
         getClients();
-        //chargmeents des locations
-        getLocations();
+
+        //faire un filtre initiale
+        handleFilter();
     }, [])
+
+    useEffect(function () {
+        console.log("Locations updated : ", locations)
+    }, [locations])
 
     // Call DataTable
     useDataTable('myTable', locations);
 
     // submit form
-    const handleFilter = async (e) => {
-        e.preventDefault();
+    const handleFilter = async (e = null) => {
+        e?.preventDefault();
 
-        console.log('Données du filtre :', dates);
+        console.log('Données du filtre :', data);
         setLoading(true);
         setStatus(null);
 
         try {
+            const response = await axiosInstance.post(apiRoutes.locationStatistique, data);
+            let responseData = response.data
 
-            const response = await axiosInstance.post(apiRoutes.locationStatistique, { dates });
-
-            let data = response.data
-
-            if (response.status != 204) {
-                setLocations(data.locations)
-            } else {
-                setLocations([])
-            }
-
-            let references = data.locations?.map((location) => `<span>${location.reference}</span>`)
-
-            console.log("Les references :", JSON.stringify(references))
-            console.log("Les locations filtrées :", JSON.stringify(data.locations))
+            // set locations
+            setLocations(responseData.locations || [])
+            console.log("Les locations filtrées :", responseData.locations)
 
             setStatus('success');
-            dates.date ?
-                setMessage(`Locations éffectuées pour la date du ${dates.date}`) :
-                setMessage(`Locations éffectuées entre ${dates.debut} a ${dates.fin}`)
+            let successMessage = '';
+            if (data.date) {
+                successMessage = `Locations éffectuées pour la date du ${data.date}`;
+            }
+            if (data.dates) {
+                successMessage = `Locations éffectuées entre ${data.dates?.debut} a ${data.dates?.fin}`
+            }
+            if (data.client_id) {
+                successMessage = `Locations éffectuées pour le client ${responseData.client?.nom} ${responseData.client?.prenom} `
+            }
+            setMessage(successMessage);
             setStatusCode(200);
 
             // synchronisation des totaux
-            setTotalAmount(data?.totaux?.total_amount);
-            setRegler(data?.totaux?.total_regler);
-            setResteAregler(data?.totaux?.total_reste_a_regler);
-            setDepenseAmount(data?.totaux?.total_depense_amount);
+            setTotalAmount(responseData?.totaux?.total_amount);
+            setRegler(responseData?.totaux?.total_regler);
+            setResteAregler(responseData?.totaux?.total_reste_a_regler);
+            setDepenseAmount(responseData?.totaux?.total_depense_amount);
+            setClient(responseData.client)
 
-            return navigate("/locations/statistiques");
+            // return navigate("/locations/statistiques");
         } catch (error) {
             console.log('Erreur lors de la modification de la location :', error);
             let errMessage = '';
@@ -140,54 +132,95 @@ const Statistiques = () => {
     return (
         <>
             <Card>
-                <div className="row d-flex justify-content-center">
-                    <div className="col-6">
+                <div className="row">
+                    {/* Journalière */}
+                    <div className="col-4">
                         <form onSubmit={(e) => handleFilter(e)} className="border shadow rounded p-3">
                             {/* Journalière */}
-                            <div className="row">
-                                <div className="col-12">
-                                    <h5 className=""> <span className="badge bg-light border rounded shadow text-dark">Locations journalières</span> </h5>
-                                    <div className="mb-3">
-                                        <InputLabel
-                                            htmlFor="date"
-                                            text="Date" />
-                                        <input type="date"
-                                            name="debut"
-                                            className="form-control"
-                                            onChange={(e) => setDates({ ...dates, date: e.target.value })} />
-                                    </div>
-                                </div>
+
+                            <h5 className=""> <span className="badge bg-light border rounded shadow text-dark">Locations journalières</span> </h5>
+                            <div className="mb-3">
+                                <InputLabel
+                                    htmlFor="date"
+                                    text="Date"
+                                    required />
+                                <input type="date"
+                                    name="debut"
+                                    className="form-control"
+                                    required
+                                    onChange={(e) => setData({ date: e.target.value })} />
                             </div>
 
+                            <div className="">
+                                <CustomButton newClass={'_btn-dark'} type="submit">
+                                    <CIcon icon={cilSend} /> Filtrer </CustomButton>
+                            </div>
+                        </form>
+                    </div>
+
+                    {/* Periodique */}
+                    <div className="col-4">
+                        <form onSubmit={(e) => handleFilter(e)} className="border shadow rounded p-3">
                             {/* Périodique */}
                             <h5 className=""> <span className="badge bg-light border rounded shadow text-dark">Locations périodiques</span> </h5>
-                            <div className="row">
+                            <div className="row mb-2">
                                 <div className="col-6">
                                     <div className="mb-3">
                                         <InputLabel
                                             htmlFor="debut"
+                                            required
                                             text="Date de debut" />
                                         <input type="date"
                                             name="debut"
                                             className="form-control"
-                                            onChange={(e) => setDates({ ...dates, debut: e.target.value })} />
+                                            required
+                                            onChange={(e) => setData({ dates: { debut: e.target.value, fin: data.dates?.fin } })} />
                                     </div>
                                 </div>
                                 <div className="col-6">
                                     <div className="mb-3">
                                         <InputLabel
                                             htmlFor="fin"
+                                            required
                                             text="Date de fin" />
                                         <input type="date"
                                             name="fin"
+                                            required
                                             className="form-control"
-                                            onChange={(e) => setDates({ ...dates, fin: e.target.value })} />
+                                            onChange={(e) => setData({ dates: { debut: data.dates?.debut, fin: e.target.value } })} />
                                     </div>
                                 </div>
                             </div>
 
                             <div className="">
-                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
+                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Filtrer </CustomButton>
+                            </div>
+                        </form>
+                    </div>
+
+                    {/* Par Client */}
+                    <div className="col-4">
+                        <form onSubmit={(e) => handleFilter(e)} className="border shadow rounded p-3">
+                            <h5 className=""> <span className="badge bg-light border rounded shadow text-dark">Locations par clients</span> </h5>
+                            <InputLabel
+                                htmlFor="client"
+                                required
+                                text="Le client" />
+                            <Select
+                                placeholder="Rechercher un client ..."
+                                name="client_id"
+                                id="client_id"
+                                required
+                                className="form-control mt-1 block w-full mb-2"
+                                options={clients.map((client) => ({
+                                    value: client.id,
+                                    label: `${client.nom} - ${client.prenom}`,
+                                }))}
+                                onChange={(option) => setData({ client_id: option.value })} // update state with id
+                            />
+
+                            <div className="">
+                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Filtrer </CustomButton>
                             </div>
                         </form>
                     </div>
@@ -198,7 +231,11 @@ const Statistiques = () => {
                     Montant total : <span className="badge bg-light border rounded shadow text-dark">{totalAmount}</span> |
                     Reglé : <span className="badge bg-light border rounded shadow text-success">{regler}</span> |
                     Dette : <span className="badge bg-light border rounded shadow text-danger">{resteAregler}</span> |
-                    Montant depensé : <span className="badge bg-light border rounded shadow text-dark">{depenseAmount}</span>
+                    Dépense effectuées : <span className="badge bg-light border rounded shadow text-dark">{depenseAmount}</span>
+                    {
+                        client &&
+                        <p className="my-2"> Client : <span className="badge bg-light border rounded shadow text-success">{client?.nom} - {client?.prenom}</span></p>
+                    }
                 </h5>
 
                 <table className="table table-striped bg-transparent" id="myTable">
@@ -223,8 +260,8 @@ const Statistiques = () => {
                     </thead>
                     <tbody>
                         {
-                            locations?.length > 0 ? locations.map((location, key) => (
-                                <tr key={key}>
+                            locations?.length > 0 ? (locations.map((location, key) => (
+                                <tr key={location.id}>
                                     <th scope="row">{key + 1}</th>
                                     <td><span className="badge bg-light shadow border rounded text-dark"> {location.reference}</span></td>
                                     <td><span className="">{`${location.client?.nom} - ${location.client?.prenom}`}</span></td>
@@ -241,7 +278,7 @@ const Statistiques = () => {
                                     <td>{location.validatedBy?.name || '---'}</td>
                                     <td><textarea className="form-control" rows="2" placeholder={location.commentaire || '---'}></textarea></td>
                                 </tr>
-                            )) : <tr><td colSpan="15" className="text-center">Aucune location n'a été trouvée</td></tr>
+                            ))) : <tr><td colSpan="15" className="text-center">Aucune location n'a été trouvée</td></tr>
                         }
                     </tbody>
                 </table>

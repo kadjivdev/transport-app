@@ -117,9 +117,8 @@ const List = () => {
     ), [dataDepense]);
 
     useEffect(() => {
-        setDataDepense({ ...currentDepense })
-        console.log("Current depense :", currentDepense)
-    }, [currentDepense]);
+        console.log("Current depense :", dataDepense)
+    }, [dataDepense]);
 
     // modifier un depense
     const updateDepense = (e, depense) => {
@@ -128,6 +127,13 @@ const List = () => {
         console.log("updating depense :", depense)
 
         setCurrentDepense({ ...depense, montant: depense._montant, commentaire: depense.commentaire })
+
+        setDataDepense({
+            ...dataDepense,
+            location_id: depense.location?.id,
+            montant: depense._montant,
+            commentaire: depense.commentaire
+        })
 
         setModalTitle(`Modifier la depense ## ${depense.reference} ##`);
         setModalUpdateVisible(true);
@@ -146,7 +152,6 @@ const List = () => {
         try {
 
             const formData = new FormData();
-
             formData.append("location_id", dataDepense.location_id);
             formData.append("montant", dataDepense.montant);
             formData.append("commentaire", dataDepense.commentaire);
@@ -158,13 +163,7 @@ const List = () => {
 
             formData.append('_method', 'PATCH');
 
-            const response = await axiosInstance.patch(
-                apiRoutes.updateDepense(currentDepense?.id),
-                formData,
-                {
-                    headers: { "Content-Type": "multipart/form-data" }
-                }
-            );
+            const response = await axiosInstance.post(apiRoutes.updateDepense(currentDepense?.id), formData);
 
             setErrors({
                 location_id: "",
@@ -175,8 +174,11 @@ const List = () => {
 
             setStatus('success');
             setMessage(`La depense a été modifiée avec succès!`);
-            setStatusCode(200);
+            setStatusCode(response?.status);
 
+            await getDepenses()
+
+            setModalUpdateVisible(false);
             return navigate("/depenses/list");
         } catch (error) {
             console.log('Erreur lors de la modification de la depense :', error);
@@ -339,7 +341,7 @@ const List = () => {
                     aria-labelledby="LiveDemoExampleLabel"
                 >
                     <form onSubmit={(e) => handleUpdateSubmit(e)} className="p-3">
-                        <h3>{modalTitle}</h3>
+                        <p>{modalTitle}</p>
                         <div className="mb-3">
                             <InputLabel
                                 htmlFor="location"
@@ -360,7 +362,7 @@ const List = () => {
                                         value: location.id,
                                         label: `${location.reference}`,
                                     }))
-                                    .find((option) => option.value === currentDepense.location_id)} // set selected option
+                                    .find((option) => option.value === dataDepense.location_id)} // set selected option
                                 onChange={(option) => setDataDepense({ ...dataDepense, location_id: option.value })} // update state with id
                             />
                             {errors.location_id && <span className="text-danger">{errors.location_id}</span>}

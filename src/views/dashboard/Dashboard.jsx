@@ -18,7 +18,14 @@ import {
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import MainChart from './MainChart'
 
+// 
+import axiosInstance from "../../api/axiosInstance";
+import apiRoutes from "../../api/routes"
+import { useApp } from "../../AppContext";
+import { useEffect, useState } from 'react'
+
 const Dashboard = () => {
+
   const progressExample = [
     { title: 'Visits', value: '29.703 Users', percent: 40, color: 'success' },
     { title: 'Unique', value: '24.093 Users', percent: 20, color: 'info' },
@@ -27,9 +34,73 @@ const Dashboard = () => {
     { title: 'Bounce Rate', value: 'Average Rate', percent: 40.15, color: 'primary' },
   ]
 
+  const { setStatus, setLoading, setMessage, setStatusCode } = useApp();
+
+  // Gestion des totaux
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0); totalCount
+  const [resteAregler, setResteAregler] = useState(0);
+  const [regler, setRegler] = useState(0);
+  const [depenseAmount, setDepenseAmount] = useState(0);
+
+  // initialization
+  useEffect(function () {
+    initialize();
+  }, []);
+
+  // submit form
+  const initialize = async () => {
+    setLoading(true);
+    setStatus(null);
+
+    try {
+      const response = await axiosInstance.get(apiRoutes.dashbaord);
+      let responseData = response.data
+
+      // set locations
+
+      setStatus('success');
+      setMessage("Résumé de toutes les opérations!");
+      setStatusCode(200);
+
+      // synchronisation des totaux
+      setTotalCount(responseData.totaux?.total_count)
+      setTotalAmount(responseData?.totaux?.total_amount);
+      setRegler(responseData?.totaux?.total_regler);
+      setResteAregler(responseData?.totaux?.total_reste_a_regler);
+      setDepenseAmount(responseData?.totaux?.total_depense_amount);
+
+      // return navigate("/locations/statistiques");
+    } catch (error) {
+      console.log('Erreur lors de la modification de la location :', error);
+      let errMessage = '';
+
+      if (error.response?.status === 422) {
+        // Erreurs de validation
+        errMessage = `Des erreurs de validation sont survenues. Veuillez vérifier les champs `;
+        setErrors(error.response?.data?.errors);
+      } else {
+        errMessage = `Une erreur inattendue est survenue. Veuillez réessayer. (${error.response?.data?.error || 'Erreure survenue'})`;
+      }
+
+      console.log(errMessage)
+      setLoading(false);
+      setStatus('error');
+      setMessage(errMessage);
+      setStatusCode(error.response?.status);
+    }
+  }
+
   return (
     <>
-      <WidgetsDropdown className="mb-4" />
+      <WidgetsDropdown
+        className="mb-4"
+        totalCount={totalCount}
+        totalAmount={totalAmount}
+        resteAregler={resteAregler}
+        regler={regler}
+        depenseAmount={depenseAmount}
+      />
       <CCard className="mb-4">
         <CCardBody>
           <CRow>
