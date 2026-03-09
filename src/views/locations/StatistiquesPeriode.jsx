@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import CustomButton from "src/components/CustomButton";
 import Select from 'react-select'
 
-const Statistiques = () => {
+const StatistiquesPeriode = () => {
     const { setStatus, setLoading, setMessage, setStatusCode } = useApp();
 
     const navigate = useNavigate();
@@ -31,35 +31,9 @@ const Statistiques = () => {
     const [resteAregler, setResteAregler] = useState(0);
     const [regler, setRegler] = useState(0);
     const [depenseAmount, setDepenseAmount] = useState(0);
-    const [client, setClient] = useState(null)
-
-    // les clients
-    const getClients = useCallback(async function () {
-        try {
-            const response = await axiosInstance.get(apiRoutes.allClient)
-
-            setClients(response?.data || []);
-
-            console.log("Les clients :", response?.data)
-
-            setStatus('success');
-            setStatusCode(response.status);
-            setMessage('Liste des clients chargés avec succès!');
-
-            return response.data;
-        } catch (error) {
-            setStatus('error');
-            setStatusCode(error.response?.status);
-            setMessage('Erreure lors du chargement des clients!!');
-            return [];
-        }
-    }, [])
 
     // initialisation des données
     useEffect(function () {
-        // chargements des clients
-        getClients();
-
         //faire un filtre initiale
         handleFilter();
     }, [])
@@ -80,7 +54,7 @@ const Statistiques = () => {
         setStatus(null);
 
         try {
-            const response = await axiosInstance.post(apiRoutes.locationStatistique, data);
+            const response = await axiosInstance.post(apiRoutes.locationStatistiquePeriode, data);
             let responseData = response.data
 
             // set locations
@@ -88,27 +62,16 @@ const Statistiques = () => {
             console.log("Les locations filtrées :", responseData.locations)
 
             setStatus('success');
-            let successMessage = '';
-            if (data.date) {
-                successMessage = `Locations éffectuées pour la date du ${data.date}`;
-            }
-            if (data.dates) {
-                successMessage = `Locations éffectuées entre ${data.dates?.debut} a ${data.dates?.fin}`
-            }
-            if (data.client_id) {
-                successMessage = `Locations éffectuées pour le client ${responseData.client?.nom} ${responseData.client?.prenom} `
-            }
-            setMessage(successMessage);
-            setStatusCode(200);
+            setMessage(`Locations éffectuées pour le client ${responseData.client?.nom} ${responseData.client?.prenom} `);
+            setStatusCode(response.status);
 
             // synchronisation des totaux
             setTotalAmount(responseData?.totaux?.total_amount);
             setRegler(responseData?.totaux?.total_regler);
             setResteAregler(responseData?.totaux?.total_reste_a_regler);
             setDepenseAmount(responseData?.totaux?.total_depense_amount);
-            setClient(responseData.client)
 
-            // return navigate("/locations/statistiques");
+            return navigate("/locations/statistiques-periode");
         } catch (error) {
             console.log('Erreur lors de la modification de la location :', error);
             let errMessage = '';
@@ -132,34 +95,9 @@ const Statistiques = () => {
     return (
         <>
             <Card>
-                <div className="row">
-                    {/* Journalière */}
-                    <div className="col-4">
-                        <form onSubmit={(e) => handleFilter(e)} className="border shadow rounded p-3">
-                            {/* Journalière */}
-
-                            <h5 className=""> <span className="badge bg-light border rounded shadow text-dark">Locations journalières</span> </h5>
-                            <div className="mb-3">
-                                <InputLabel
-                                    htmlFor="date"
-                                    text="Date"
-                                    required />
-                                <input type="date"
-                                    name="debut"
-                                    className="form-control"
-                                    required
-                                    onChange={(e) => setData({ date: e.target.value })} />
-                            </div>
-
-                            <div className="">
-                                <CustomButton newClass={'_btn-dark'} type="submit">
-                                    <CIcon icon={cilSend} /> Filtrer </CustomButton>
-                            </div>
-                        </form>
-                    </div>
-
+                <div className="row d-flex justify-content-center">
                     {/* Periodique */}
-                    <div className="col-4">
+                    <div className="col-6">
                         <form onSubmit={(e) => handleFilter(e)} className="border shadow rounded p-3">
                             {/* Périodique */}
                             <h5 className=""> <span className="badge bg-light border rounded shadow text-dark">Locations périodiques</span> </h5>
@@ -197,33 +135,6 @@ const Statistiques = () => {
                             </div>
                         </form>
                     </div>
-
-                    {/* Par Client */}
-                    <div className="col-4">
-                        <form onSubmit={(e) => handleFilter(e)} className="border shadow rounded p-3">
-                            <h5 className=""> <span className="badge bg-light border rounded shadow text-dark">Locations par clients</span> </h5>
-                            <InputLabel
-                                htmlFor="client"
-                                required
-                                text="Le client" />
-                            <Select
-                                placeholder="Rechercher un client ..."
-                                name="client_id"
-                                id="client_id"
-                                required
-                                className="form-control mt-1 block w-full mb-2"
-                                options={clients.map((client) => ({
-                                    value: client.id,
-                                    label: `${client.nom} - ${client.prenom}`,
-                                }))}
-                                onChange={(option) => setData({ client_id: option.value })} // update state with id
-                            />
-
-                            <div className="">
-                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Filtrer </CustomButton>
-                            </div>
-                        </form>
-                    </div>
                 </div>
                 <br />
 
@@ -232,10 +143,6 @@ const Statistiques = () => {
                     Reglé : <span className="badge bg-light border rounded shadow text-success">{regler}</span> |
                     Dette : <span className="badge bg-light border rounded shadow text-danger">{resteAregler}</span> |
                     Dépense effectuées : <span className="badge bg-light border rounded shadow text-dark">{depenseAmount}</span>
-                    {
-                        client &&
-                        <p className="my-2"> Client : <span className="badge bg-light border rounded shadow text-success">{client?.nom} - {client?.prenom}</span></p>
-                    }
                 </h5>
 
                 <table className="table table-striped bg-transparent" id="myTable">
@@ -289,4 +196,4 @@ const Statistiques = () => {
     )
 }
 
-export default Statistiques;
+export default StatistiquesPeriode;

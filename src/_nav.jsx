@@ -120,14 +120,24 @@ const _nav = [
 
   {
     component: CNavGroup,
-    name: 'Statistiques',
+    name: 'Statiqtiques',
     to: "/statistique",
     icon: <CIcon icon={cibMathworks} customClassName="nav-icon" />,
     items: [
       {
         component: CNavItem,
-        name: 'Statistique',
-        to: '/locations/statistiques',
+        name: 'Journalière',
+        to: '/locations/statistiques-date',
+      },
+      {
+        component: CNavItem,
+        name: 'Périodique',
+        to: '/locations/statistiques-periode',
+      },
+      {
+        component: CNavItem,
+        name: 'Par Client',
+        to: '/locations/statistiques-client',
       }
     ]
   },

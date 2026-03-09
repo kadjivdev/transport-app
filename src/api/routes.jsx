@@ -38,7 +38,9 @@ const myRoutes = {
   deleteLocation: (id) => (`locations/${id}`),
 
   // Statistiques
-  locationStatistique: `/locations/statistiques`,
+  locationStatistiqueDate: `/locations/statistiques-date`,
+  locationStatistiquePeriode: `/locations/statistiques-periode`,
+  locationStatistiqueClient: `/locations/statistiques-client`,
 
   // reglements's routes
   allReglement: `reglements`,

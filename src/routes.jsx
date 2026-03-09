@@ -6,7 +6,9 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Location = {
   List: React.lazy(() => import('./views/locations/List')),
   Create: React.lazy(() => import('./views/locations/Create')),
-  Statistique: React.lazy(() => import('./views/locations/Statistiques')),
+  StatistiqueDate: React.lazy(() => import('./views/locations/StatistiquesDate')),
+  StatistiquePeriode: React.lazy(() => import('./views/locations/StatistiquesPeriode')),
+  StatistiqueClient: React.lazy(() => import('./views/locations/StatistiquesClient')),
   Type: {
     List: React.lazy(() => import('./views/locations/types/List')),
     Create: React.lazy(() => import('./views/locations/types/Create')),
@@ -54,7 +56,11 @@ const routes = [
 
   { path: '/locations/list', name: 'Liste des locations', element: Location.List },
   { path: '/locations/create', name: 'Ajouter une location', element: Location.Create },
-  { path: '/locations/statistiques', name: 'Liste des locations', element: Location.Statistique },
+
+  { path: '/locations/statistiques-date', name: 'Liste des locations', element: Location.StatistiqueDate },
+  { path: '/locations/statistiques-periode', name: 'Liste des locations', element: Location.StatistiquePeriode },
+  { path: '/locations/statistiques-client', name: 'Liste des locations', element: Location.StatistiqueClient },
+
   { path: '/locations/types/list', name: 'Liste des types de location', element: Location.Type.List },
   { path: '/locations/types/create', name: 'Ajouter un type de location', element: Location.Type.Create },
 
