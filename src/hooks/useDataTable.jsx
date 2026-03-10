@@ -1,49 +1,39 @@
 import DataTable from 'datatables.net-bs5';
-
 // CSS principal
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'datatables.net-bs5/css/dataTables.bootstrap5.min.css';
 import 'datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css';
 import 'datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css';
-
 // JS DataTables avec intégration Bootstrap
 import 'datatables.net-buttons-bs5';
 import 'datatables.net-responsive-bs5';
-
 // Plugins boutons
 import 'datatables.net-buttons/js/buttons.html5';
 import 'datatables.net-buttons/js/buttons.print';
 import 'datatables.net-buttons/js/buttons.colVis';
-
 // dépendances Excel / PDF
 import jszip from 'jszip';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
-
 // JSZip est utilisé par Excel
 window.JSZip = jszip;
-
 pdfMake.vfs = pdfFonts.vfs; // ✅ not pdfFonts.pdfMake.vfs
-
 import 'datatables.net-responsive';
-
 import { useEffect, useRef } from 'react';
-
 const useDataTable = (tableId = 'myTable', data = []) => {
     const tableRef = useRef(null);
-
     useEffect(() => {
-        if (!data.length) return;
-
+        if (!data.length)
+            return;
         const tableElement = document.getElementById(tableId);
-        if (!tableElement) return;
-
+        if (!tableElement)
+            return;
         // destroy previous instance
         if (tableRef.current) {
             tableRef.current.destroy();
             tableRef.current = null;
         }
-
+        
         tableRef.current = new DataTable(`#${tableId}`, {
             pagingType: 'full_numbers',
             responsive: true,
@@ -86,7 +76,6 @@ const useDataTable = (tableId = 'myTable', data = []) => {
                 buttons: { copy: "Copier", excel: "Exporter Excel", pdf: "Exporter PDF", print: "Imprimer", colvis: "Visibilité colonnes" }
             }
         });
-
         return () => {
             if (tableRef.current) {
                 tableRef.current.destroy();
@@ -94,9 +83,7 @@ const useDataTable = (tableId = 'myTable', data = []) => {
             }
         };
     }, [tableId, data]);
-
     return tableRef; // 🔥 expose it
 };
-
 export default useDataTable;
-
+//# sourceMappingURL=useDataTable.js.map

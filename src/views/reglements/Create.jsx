@@ -89,14 +89,14 @@ const Create = () => {
 
             setDataReglement((prev) => ({
                 ...prev,
-                montant: value, montant: currentLocation.current?._reste
+                montant: currentLocation.current?._reste
             }));
             return;
         }
 
         setDataReglement((prev) => ({
             ...prev,
-            montant: value, montant: value
+            montant: value
         }));
     }
 

@@ -36,7 +36,7 @@ const Create = () => {
             const response = await axiosInstance.post(apiRoutes.createLocationType, dataType);
             console.log('Réponse du serveur après création du type :', response.data);
 
-            setErrors({ libelle: '', description: '' ,'price'});
+            setErrors({ libelle: '', description: '' ,price:''});
 
             setStatus('success');
             setMessage(`Le type a été créé avec succès!`);
