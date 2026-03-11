@@ -1,0 +1,1 @@
+import{j as n,L as r}from"./index-CqQAgzYI.js";const o=({route:t=null,children:s,newClass:e=null})=>n.jsx(n.Fragment,{children:n.jsx("div",{className:"d-flex justify-content-center mb-3",children:n.jsx(r,{className:"w-50 btn btn-md btn-transparent border shadow "+e,to:t,children:s})})});export{o as L};
