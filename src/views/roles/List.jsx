@@ -303,7 +303,7 @@ const List = () => {
                                     <input type="text" className="form-control rounded borded shadow my-2" placeholder="Faire une rechercher ..."
                                         onChange={(e) => setSearchTerm(e.target.value)} />
 
-                                    <ul className="list-group">
+                                    <ul className="list-group" style={{ height: 200, overflowY: "auto" }}>
                                         {
                                             (filteredAllPermissions).map((permission, key) => (
                                                 <li key={key} className="list-group-item d-flex justify-content-between align-items-start">

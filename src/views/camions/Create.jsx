@@ -84,6 +84,7 @@ const Create = () => {
                                         name="libelle"
                                         value={dataCamion?.libelle}
                                         className="form-control"
+                                        placeholder="Renault"
                                         id="libelle"
                                         onChange={(e) => handleChange(e)}
                                         required />
@@ -96,6 +97,7 @@ const Create = () => {
                                         required={true} />
                                     <input type="text"
                                         name="immatriculation"
+                                        placeholder="Ex: BWX6789"
                                         value={dataCamion?.immatriculation}
                                         className="form-control"
                                         id="immatriculation"
@@ -107,9 +109,9 @@ const Create = () => {
                             <div className="">
                                 <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
                             </div>
-                            <br /><br /><br />
                         </form>
                     </Card>
+                    <br /><br /><br />
                 </div>
                 <div className="col-md-2"></div>
             </div>

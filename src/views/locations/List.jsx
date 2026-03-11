@@ -24,12 +24,6 @@ const List = () => {
 
     const currentUser = JSON.parse(localStorage.getItem("user") || "[]");
 
-    const formatToISO = (date) => {
-        if (!date) return "";
-        const [month, day, year] = date.split("/");
-        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-    };
-
     // verification de permission
     const checkPermission = (name) => {
         return currentUser?.permissions?.some(per => per.name == name);

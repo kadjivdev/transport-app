@@ -59,6 +59,7 @@ const List = () => {
     useEffect(() => {
         setDataType({
             libelle: currentType.libelle || "",
+            price: currentType.price || "",
             description: currentType.description || "",
         });
 
@@ -92,11 +93,11 @@ const List = () => {
             // actualiser la liste des types
             getTypes();
 
-            setModalVisible(false);
             setStatus('success');
             setMessage(`Le client ${currentType.current?.libelle || currentType?.description} a été modifié avec succès!`);
             setStatusCode(response.status);
 
+            setModalVisible(false);
             return navigate("/locations/types/list");
         } catch (error) {
 
@@ -133,6 +134,8 @@ const List = () => {
         e.preventDefault();
 
         setCurrentType(type)
+
+        setDataType({ ...dataType, price: type.price })
 
         console.log("Comming type :", type)
         console.log("currentType current :", currentType)

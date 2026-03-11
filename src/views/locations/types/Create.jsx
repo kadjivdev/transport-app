@@ -13,8 +13,8 @@ import apiRoutes from "../../../api/routes"
 const Create = () => {
     const { setStatus, setLoading, setMessage, setStatusCode } = useApp();
 
-    const [dataType, setDataType] = useState({ libelle: '', description: '' ,price:''});
-    const [errors, setErrors] = useState({ libelle: '', description: '' ,price:''});
+    const [dataType, setDataType] = useState({ libelle: '', description: '', price: '' });
+    const [errors, setErrors] = useState({ libelle: '', description: '', price: '' });
 
     const navigate = useNavigate();
 
@@ -36,7 +36,7 @@ const Create = () => {
             const response = await axiosInstance.post(apiRoutes.createLocationType, dataType);
             console.log('Réponse du serveur après création du type :', response.data);
 
-            setErrors({ libelle: '', description: '' ,price:''});
+            setErrors({ libelle: '', description: '', price: '' });
 
             setStatus('success');
             setMessage(`Le type a été créé avec succès!`);
@@ -84,6 +84,7 @@ const Create = () => {
                                         name="libelle"
                                         value={dataType?.libelle}
                                         className="form-control"
+                                        placeholder="Ex: Journalière"
                                         id="libelle"
                                         onChange={(e) => handleChange(e)}
                                         required />
@@ -98,6 +99,7 @@ const Create = () => {
                                         name="price"
                                         value={dataType?.price}
                                         className="form-control"
+                                        placeholder="Ex: 75000"
                                         id="price"
                                         onChange={(e) => handleChange(e)}
                                         required />
@@ -112,6 +114,7 @@ const Create = () => {
                                         name="description"
                                         value={dataType?.description}
                                         className="form-control"
+                                        placeholder="Ex: Type de location journalière"
                                         id="description"
                                         onChange={(e) => handleChange(e)}
                                         required />
@@ -121,9 +124,9 @@ const Create = () => {
                             <div className="">
                                 <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
                             </div>
-                            <br /><br /><br />
                         </form>
                     </Card>
+                    <br /><br /><br />
                 </div>
                 <div className="col-md-2"></div>
             </div>

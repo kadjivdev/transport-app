@@ -92,11 +92,11 @@ const List = () => {
             // actualiser la liste des camions
             getCamions();
 
-            setModalVisible(false);
             setStatus('success');
             setMessage(`Le client ${currentCamion.current?.libelle || currentCamion?.immatriculation} a été modifié avec succès!`);
             setStatusCode(response.status);
-
+            
+            setModalVisible(false);
             return navigate("/camions/list");
         } catch (error) {
 

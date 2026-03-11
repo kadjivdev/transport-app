@@ -30,6 +30,7 @@ const Create = () => {
         e.preventDefault();
 
         console.log('Données du client à créer :', dataClient);
+        
         setLoading(true);
         setStatus(null);
 
@@ -85,7 +86,7 @@ const Create = () => {
                                         name="nom"
                                         value={dataClient.nom}
                                         className="form-control"
-                                        id="nom" placeholder={`Ex: ${dataClient.nom}`}
+                                        id="nom" placeholder={`Ex: GOGO`}
                                         onChange={(e) => handleChange(e)}
                                         required />
                                     {errors?.nom && <span className="text-danger">{errors?.nom}</span>}
@@ -99,7 +100,7 @@ const Create = () => {
                                         name="prenom"
                                         value={dataClient.prenom}
                                         className="form-control"
-                                        id="prenom" placeholder={`Ex: ${dataClient.prenom}`}
+                                        id="prenom" placeholder={`Ex: Christian`}
                                         onChange={(e) => handleChange(e)}
                                         required />
                                     {errors?.prenom && <span className="text-danger">{errors?.prenom}</span>}
@@ -111,7 +112,7 @@ const Create = () => {
                                         required={true} />
                                     <input type="tel" name="phone" value={dataClient.phone}
                                         className="form-control"
-                                        id="phone" placeholder={`Ex: ${dataClient.phone}`}
+                                        id="phone" placeholder={`Ex: +2290156854397`}
                                         onChange={(e) => handleChange(e)}
                                         required />
                                     {errors?.phone && <span className="text-danger">{errors?.phone}</span>}
@@ -122,7 +123,7 @@ const Create = () => {
                                         text="IFU"
                                         required={true} />
                                     <input type="text" name="ifu" value={dataClient.ifu}
-                                        className="form-control" id="ifu" placeholder={`Ex: ${dataClient.ifu}`}
+                                        className="form-control" id="ifu" placeholder={`Ex: ###98GHJ##98G`}
                                         onChange={(e) => handleChange(e)}
                                         required />
                                     {errors?.ifu && <span className="text-danger">{errors?.ifu}</span>}
@@ -132,9 +133,9 @@ const Create = () => {
                             <div className="">
                                 <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
                             </div>
-                            <br /><br /><br />
                         </form>
                     </Card>
+                            <br /><br /><br />
                 </div>
                 <div className="col-md-2"></div>
             </div>

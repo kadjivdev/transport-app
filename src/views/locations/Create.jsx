@@ -25,16 +25,14 @@ const Create = () => {
             camion_id: ''
         },]
     });
+
     const [errors, setErrors] = useState({
         client_id: '',
         location_type_id: '',
         date_location: '',
         contrat: '',
         commentaire: '',
-        details: [{
-            price: '',
-            camion_id: ''
-        },]
+        details: ''
     });
 
     const [clients, setClients] = useState([]);
@@ -107,7 +105,7 @@ const Create = () => {
         }
     }, [])
 
-    useEffect(function () {
+    useEffect(() => {
         // chargements des clients
         getClients();
         // chargement des types
@@ -164,10 +162,7 @@ const Create = () => {
                 date_location: '',
                 contrat: '',
                 commentaire: '',
-                details: [{
-                    price: '',
-                    camion_id: ''
-                },]
+                details: ''
             })
 
             setStatus('success');
@@ -192,10 +187,7 @@ const Create = () => {
                     date_location: '',
                     contrat: '',
                     commentaire: '',
-                    details: [{
-                        price: '',
-                        camion_id: ''
-                    },]
+                    details: ''
                 })
             }
 
@@ -296,6 +288,8 @@ const Create = () => {
                                     <CIcon icon={cibAddthis} />Ajouter un détail
                                 </button>
                                 {/* <br /> */}
+                                {errors.details && <p className="text-danger">{errors.details}</p>}
+
                                 {dataLocation.details?.map((detail, index) => (
                                     <div className="align-items-center d-flex justify-content-between"
                                         key={index}
@@ -363,9 +357,9 @@ const Create = () => {
                             <div className="">
                                 <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
                             </div>
-                            <br /><br /><br />
                         </form>
                     </Card>
+                    <br /><br /><br />
                 </div>
                 <div className="col-md-2"></div>
             </div>

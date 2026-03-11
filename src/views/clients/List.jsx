@@ -92,11 +92,11 @@ const List = () => {
             // actualiser la liste des clients
             getClients();
 
-            setModalVisible(false);
             setStatus('success');
             setMessage(`Le client ${currentClient.current?.nom || currentClient?.prenom} a été modifié avec succès!`);
             setStatusCode(response.status);
-
+            
+            setModalVisible(false);
             return navigate("/clients/list");
         } catch (error) {
 

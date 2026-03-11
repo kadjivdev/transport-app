@@ -82,10 +82,11 @@ const List = () => {
             setStatus('success');
             setMessage(`Le rôle a été affecté avec succès à l'utilisateur ${currentUser.current?.name || currentUser.current?.email}`);
             setStatusCode(response.status);
-            setModalVisible(false);
 
             // actualiser la liste des utilisateurs
             getUsers();
+
+            setModalVisible(false);
 
             return navigate("/users/list");
         } catch (error) {
@@ -148,6 +149,9 @@ const List = () => {
             setStatus('success');
             setMessage(`L'utilisateur ${currentUser.current?.name || currentUser.current?.email} a été modifié avec succès!`);
             setStatusCode(response.status);
+
+            // setModalVisible(false);
+            setModalUpdateVisible(false)
 
             return navigate("/users/list");
         } catch (error) {
@@ -354,11 +358,12 @@ const List = () => {
                             </div>
                         </CModalBody>
                         <CModalFooter>
-                            <CButton color="warning" onClick={() => setModalVisible(false)}>
+                            <CButton color="warning" onClick={() => setModalUpdateVisible(false)}>
                                 <CIcon icon={cilDelete} /> Fermer
                             </CButton>
                             <CButton color="dark" type="submit"> <CIcon icon={cilCheckCircle} /> {actionText}</CButton>
                         </CModalFooter>
+
                     </form>
                 </CModal>
             </Card>
