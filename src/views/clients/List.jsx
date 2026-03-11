@@ -13,6 +13,7 @@ import { Modal } from "../../components/Modal";
 import InputLabel from "src/components/forms/InputLabel";
 import { useNavigate } from "react-router-dom";
 import ConfirmAlert from "../../hooks/ConfirmAlert";
+import Swal from "sweetalert2";
 
 const List = () => {
     const { setStatus, setLoading, setMessage, setStatusCode, modalVisible, setModalVisible, modalTitle, setModalTitle, setModalBody } = useApp();
@@ -79,7 +80,20 @@ const List = () => {
     const handleUpdateSubmit = async (e) => {
         e.preventDefault()
 
-        setLoading(true);
+        Swal.fire({
+            title: "Opération en cours...",
+            text: "Veuillez patienter",
+            icon: "info",
+            didOpen: (toast) => {
+                Swal.showLoading()
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didClose: () => {
+                Swal.close();
+            }
+        });
+
         setStatus(null);
 
         console.log("Current client  called in handleUpdateSubmit:", currentClient)
@@ -95,7 +109,7 @@ const List = () => {
             setStatus('success');
             setMessage(`Le client ${currentClient.current?.nom || currentClient?.prenom} a été modifié avec succès!`);
             setStatusCode(response.status);
-            
+
             setModalVisible(false);
             return navigate("/clients/list");
         } catch (error) {

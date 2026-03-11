@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import ConfirmAlert from "../../hooks/ConfirmAlert";
 import Select from 'react-select'
 import CustomButton from "src/components/CustomButton";
+import Swal from "sweetalert2";
 
 
 const List = () => {
@@ -235,7 +236,20 @@ const List = () => {
         e.preventDefault();
 
         // console.log('Données du location à modifier :', dataLocation);
-        setLoading(true);
+        Swal.fire({
+            title: "Opération en cours...",
+            text: "Veuillez patienter",
+            icon: "info",
+            didOpen: (toast) => {
+                Swal.showLoading()
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didClose: () => {
+                Swal.close();
+            }
+        });
+
         setStatus(null);
 
         try {

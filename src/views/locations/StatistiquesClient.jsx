@@ -11,6 +11,7 @@ import InputLabel from "src/components/forms/InputLabel";
 import { useNavigate } from "react-router-dom";
 import CustomButton from "src/components/CustomButton";
 import Select from 'react-select'
+import Swal from "sweetalert2";
 
 const StatistiquesClient = () => {
     const { setStatus, setLoading, setMessage, setStatusCode } = useApp();
@@ -77,7 +78,21 @@ const StatistiquesClient = () => {
         e?.preventDefault();
 
         console.log('Données du filtre :', data);
-        setLoading(true);
+
+        Swal.fire({
+            title: "Opération en cours...",
+            text: "Veuillez patienter",
+            icon: "info",
+            didOpen: (toast) => {
+                Swal.showLoading()
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didClose: () => {
+                Swal.close();
+            }
+        });
+
         setStatus(null);
 
         try {

@@ -174,7 +174,21 @@ const List = () => {
         e.preventDefault();
 
         console.log('Données du reglement à modifier :', dataReglement);
-        setLoading(true);
+
+        Swal.fire({
+            title: "Opération en cours...",
+            text: "Veuillez patienter",
+            icon: "info",
+            didOpen: (toast) => {
+                Swal.showLoading()
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didClose: () => {
+                Swal.close();
+            }
+        });
+
         setStatus(null);
 
         if (dataReglement.montant > currentReglement.location?.reste_a_regler) {

@@ -32,7 +32,7 @@ const List = () => {
     const [actionText, setActionText] = useState("Enregistrer");
 
     // 
-    const [dataCamion, setDataCamion] = useState({ libelle: currentCamion?.libelle, immatriculation: currentCamion?.immatriculation});
+    const [dataCamion, setDataCamion] = useState({ libelle: currentCamion?.libelle, immatriculation: currentCamion?.immatriculation });
     const [errors, setErrors] = useState({ libelle: '', immatriculation: '' });
 
     const getCamions = useCallback(async function () {
@@ -41,7 +41,7 @@ const List = () => {
 
             setCamions(response?.data);
 
-            console.log("Les camions :",response?.data)
+            console.log("Les camions :", response?.data)
 
             setStatus('success');
             setStatusCode(response.status);
@@ -79,7 +79,20 @@ const List = () => {
     const handleUpdateSubmit = async (e) => {
         e.preventDefault()
 
-        setLoading(true);
+        Swal.fire({
+            title: "Opération en cours...",
+            text: "Veuillez patienter",
+            icon: "info",
+            didOpen: (toast) => {
+                Swal.showLoading()
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didClose: () => {
+                Swal.close();
+            }
+        });
+
         setStatus(null);
 
         console.log("Current camion  called in handleUpdateSubmit:", currentCamion)
@@ -95,7 +108,7 @@ const List = () => {
             setStatus('success');
             setMessage(`Le client ${currentCamion.current?.libelle || currentCamion?.immatriculation} a été modifié avec succès!`);
             setStatusCode(response.status);
-            
+
             setModalVisible(false);
             return navigate("/camions/list");
         } catch (error) {

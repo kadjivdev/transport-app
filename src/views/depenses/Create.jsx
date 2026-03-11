@@ -78,7 +78,21 @@ const Create = () => {
         e.preventDefault();
 
         console.log('Données de la depense à créer :', dataDepense);
-        setLoading(true);
+
+        Swal.fire({
+            title: "Opération en cours...",
+            text: "Veuillez patienter",
+            icon: "info",
+            didOpen: (toast) => {
+                Swal.showLoading()
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didClose: () => {
+                Swal.close();
+            }
+        });
+
         setStatus(null);
 
         try {

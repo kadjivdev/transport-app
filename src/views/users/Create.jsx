@@ -7,6 +7,7 @@ import LinkButton from "src/components/LinkButton";
 import InputLabel from "src/components/forms/InputLabel";
 import { useApp } from "../../AppContext";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const Create = () => {
     const { register } = useApp()
@@ -17,6 +18,19 @@ const Create = () => {
     const handleSubmit = async (e) => {
 
         e.preventDefault();
+        Swal.fire({
+            title: "Opération en cours...",
+            text: "Veuillez patienter",
+            icon: "info",
+            didOpen: (toast) => {
+                Swal.showLoading()
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didClose: () => {
+                Swal.close();
+            }
+        });
 
         const { name, email, password, password_confirmation } = e.target;
 

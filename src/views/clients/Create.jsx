@@ -9,6 +9,7 @@ import { useApp } from "../../AppContext";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
 import apiRoutes from "../../api/routes"
+import Swal from "sweetalert2";
 
 const Create = () => {
     const { setStatus, setLoading, setMessage, setStatusCode } = useApp();
@@ -30,8 +31,21 @@ const Create = () => {
         e.preventDefault();
 
         console.log('Données du client à créer :', dataClient);
-        
-        setLoading(true);
+
+        Swal.fire({
+            title: "Opération en cours...",
+            text: "Veuillez patienter",
+            icon: "info",
+            didOpen: (toast) => {
+                Swal.showLoading()
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didClose: () => {
+                Swal.close();
+            }
+        });
+
         setStatus(null);
 
         try {
@@ -135,7 +149,7 @@ const Create = () => {
                             </div>
                         </form>
                     </Card>
-                            <br /><br /><br />
+                    <br /><br /><br />
                 </div>
                 <div className="col-md-2"></div>
             </div>

@@ -105,7 +105,21 @@ const Create = () => {
         e.preventDefault();
 
         console.log('Données du reglement à créer :', dataReglement);
-        setLoading(true);
+
+        Swal.fire({
+            title: "Opération en cours...",
+            text: "Veuillez patienter",
+            icon: "info",
+            didOpen: (toast) => {
+                Swal.showLoading()
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didClose: () => {
+                Swal.close();
+            }
+        });
+
         setStatus(null);
 
         try {
