@@ -145,6 +145,7 @@ const Create = () => {
         e.preventDefault();
 
         console.log('Données du location à créer :', dataLocation);
+        
         setLoading(true);
         setStatus(null);
 

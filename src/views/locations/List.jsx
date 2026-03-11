@@ -189,7 +189,7 @@ const List = () => {
     const updateLocation = (e, location) => {
         e.preventDefault();
 
-        // console.log("updating location :", location)
+        console.log("updating location :", location)
 
         setCurrentLocation(location)
 
@@ -234,7 +234,7 @@ const List = () => {
     const handleUpdateSubmit = async (e) => {
         e.preventDefault();
 
-        console.log('Données du location à modifier :', dataLocation);
+        // console.log('Données du location à modifier :', dataLocation);
         setLoading(true);
         setStatus(null);
 

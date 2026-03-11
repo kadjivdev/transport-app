@@ -11,6 +11,7 @@ import { useApp } from "../../AppContext";
 import InputLabel from "src/components/forms/InputLabel";
 import { useNavigate } from "react-router-dom";
 import ConfirmAlert from "../../hooks/ConfirmAlert";
+import Swal from 'sweetalert2';
 
 const List = () => {
     const { setStatus, setLoading, setMessage, setStatusCode, modalVisible, setModalVisible, modalTitle, setModalTitle, modalBody, setModalBody } = useApp();
@@ -132,7 +133,19 @@ const List = () => {
     const handleUpdateSubmit = async (e) => {
         e.preventDefault();
 
-        setLoading(true);
+        Swal.fire({
+            title: "Opération en cours...",
+            text: "Veuillez patienter",
+            icon: "info",
+            didOpen: (toast) => {
+                Swal.showLoading()
+            },
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didClose: () => {
+                Swal.close();
+            }
+        });
         setStatus(null);
 
         try {
