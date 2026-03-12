@@ -18,6 +18,7 @@ import avatar8 from '../../../public/kadjiv-logo.png'
 
 import { useApp } from '../../AppContext'
 import { useNavigate } from 'react-router-dom'
+import Swal from 'sweetalert2'
 
 const AppHeaderDropdown = () => {
   const navigate = useNavigate()
@@ -26,6 +27,20 @@ const AppHeaderDropdown = () => {
 
   const Logout = async (e) => {
     e.preventDefault()
+
+    Swal.fire({
+      title: "Opération en cours...",
+      text: "Veuillez patienter",
+      icon: "info",
+      didOpen: (toast) => {
+        Swal.showLoading()
+      },
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didClose: () => {
+        Swal.close();
+      }
+    });
 
     const response = await logout();
     if (response.success) {

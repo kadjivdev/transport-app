@@ -1,1 +1,0 @@
-import{j as t}from"./index-C7ZTCCAU.js";const o=({children:n,newClass:s,...e})=>t.jsx(t.Fragment,{children:t.jsx("div",{className:"d-flex justify-content-center mb-3",children:t.jsx("button",{className:"w-50 btn btn-md btn-transparent border shadow "+s,...e,children:n})})});export{o as C};
