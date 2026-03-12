@@ -20,7 +20,6 @@ const StatistiquesDate = () => {
     const [locations, setLocations] = useState([]);
     // 
     const [data, setData] = useState({});
-    const [errors, setErrors] = useState('')
 
     useEffect(() => {
         console.log("The data : ", data)
@@ -34,16 +33,12 @@ const StatistiquesDate = () => {
 
     // initialisation des données
     // useEffect(function () {
-    //     //faire un filtre initiale
-    //     if (locations.length > 0) {
-    //         setLocations({ ...locations })
-    //     } else {
-    //         handleFilter();
-    //     }
+    //     handleFilter();
     // }, [])
 
     useEffect(function () {
         console.log("Locations updated : ", locations)
+        // setLocations([...locations]);  // Créer une nouvelle référence à chaque mise à jour
     }, [locations])
 
     // Call DataTable
@@ -76,12 +71,12 @@ const StatistiquesDate = () => {
             let responseData = response.data
 
             // set locations
-            setLocations(responseData.locations || [])
+            setLocations([...responseData.locations] || [])
             console.log("Les locations filtrées :", responseData.locations)
 
             setStatus('success');
             setMessage(`Locations éffectuées pour la date du ${data.date}`);
-            setStatusCode(200);
+            setStatusCode(response.status);
 
             // synchronisation des totaux
             setTotalAmount(responseData?.totaux?.total_amount);
@@ -171,7 +166,7 @@ const StatistiquesDate = () => {
                     <tbody>
                         {
                             locations?.length > 0 ? (locations.map((location, key) => (
-                                <tr key={location.id}>
+                                <tr key={location.reference}>
                                     <th scope="row">{key + 1}</th>
                                     <td><span className="badge bg-light shadow border rounded text-dark"> {location.reference}</span></td>
                                     <td><span className="">{`${location.client?.nom} - ${location.client?.prenom}`}</span></td>

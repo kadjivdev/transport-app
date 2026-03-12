@@ -176,7 +176,20 @@ const List = () => {
             denyButtonText: "Annuler",
             next: async () => {
                 try {
-                    setLoading(true);
+                    Swal.fire({
+                        title: "Opération en cours...",
+                        text: "Veuillez patienter",
+                        icon: "info",
+                        didOpen: (toast) => {
+                            Swal.showLoading()
+                        },
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didClose: () => {
+                            Swal.close();
+                        }
+                    });
+
                     setStatus(null);
                     const response = await axiosInstance.delete(apiRoutes.deleteLocationType(type?.id));
 
