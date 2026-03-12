@@ -21,7 +21,7 @@ const StatistiquesPeriode = () => {
     const [clients, setClients] = useState([]);
     const [locations, setLocations] = useState([]);
     // 
-    const [data, setData] = useState({});
+    const [data, setData] = useState({ debut: '', fin: '' });
 
     useEffect(() => {
         console.log("The data : ", data)
@@ -75,6 +75,7 @@ const StatistiquesPeriode = () => {
             // set locations
             setLocations(responseData.locations || [])
             console.log("Les locations filtrées :", responseData.locations)
+            console.log("Data retournés :", responseData)
 
             setStatus('success');
             setMessage(`Locations éffectuées pour le client ${responseData.client?.nom} ${responseData.client?.prenom} `);
@@ -122,12 +123,14 @@ const StatistiquesPeriode = () => {
                                         <InputLabel
                                             htmlFor="debut"
                                             required
+                                            value={data.debut}
                                             text="Date de debut" />
                                         <input type="date"
                                             name="debut"
                                             className="form-control"
                                             required
-                                            onChange={(e) => setData({ dates: { debut: e.target.value, fin: data.dates?.fin } })} />
+                                            value={data.debut}
+                                            onChange={(e) => setData({ debut: e.target.value, fin: data.fin })} />
                                     </div>
                                 </div>
                                 <div className="col-6">
@@ -139,8 +142,9 @@ const StatistiquesPeriode = () => {
                                         <input type="date"
                                             name="fin"
                                             required
+                                            value={data.fin}
                                             className="form-control"
-                                            onChange={(e) => setData({ dates: { debut: data.dates?.debut, fin: e.target.value } })} />
+                                            onChange={(e) => setData({ debut: data.debut, fin: e.target.value })} />
                                     </div>
                                 </div>
                             </div>
@@ -159,52 +163,52 @@ const StatistiquesPeriode = () => {
                     Dette : <span className="badge bg-light border rounded shadow text-danger">{resteAregler}</span> |
                     Dépense effectuées : <span className="badge bg-light border rounded shadow text-dark">{depenseAmount}</span>
                 </h5>
-
-                <table className="table table-striped bg-transparent" id="myTable">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Reference</th>
-                            <th scope="col">Client</th>
-                            <th scope="col">Type</th>
-                            <th scope="col">Date</th>
-                            <th scope="col">Montant</th>
-                            <th scope="col">Réglé</th>
-                            <th scope="col">Reste</th>
-                            <th scope="col">Depense</th>
-                            <th scope="col">Contrat</th>
-                            <th scope="col">Inserée le</th>
-                            <th scope="col">Inserée par</th>
-                            <th scope="col">Validée le</th>
-                            <th scope="col">Validée par</th>
-                            <th scope="col">Commentaire</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            locations?.length > 0 ? (locations.map((location, key) => (
-                                <tr key={location.id}>
-                                    <th scope="row">{key + 1}</th>
-                                    <td><span className="badge bg-light shadow border rounded text-dark"> {location.reference}</span></td>
-                                    <td><span className="">{`${location.client?.nom} - ${location.client?.prenom}`}</span></td>
-                                    <td>{location.type?.libelle || '---'}</td>
-                                    <td>{location.date_location || '---'}</td>
-                                    <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.montant} </span></td>
-                                    <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.regle} </span></td>
-                                    <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.reste} </span></td>
-                                    <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.depenseAmount}</span></td>
-                                    <td>{location.contrat ? <a href={location.contrat} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}</td>
-                                    <td>{location.createdAt || '---'}</td>
-                                    <td>{location.createdBy?.name || '---'}</td>
-                                    <td>{location.validatedAt || '---'}</td>
-                                    <td>{location.validatedBy?.name || '---'}</td>
-                                    <td><textarea className="form-control" rows="2" placeholder={location.commentaire || '---'}></textarea></td>
-                                </tr>
-                            ))) : <tr><td colSpan="15" className="text-center">Aucune location n'a été trouvée</td></tr>
-                        }
-                    </tbody>
-                </table>
-
+                <div className="table-responsive">
+                    <table className="table table-striped bg-transparent" id="_myTable">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Reference</th>
+                                <th scope="col">Client</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Montant</th>
+                                <th scope="col">Réglé</th>
+                                <th scope="col">Reste</th>
+                                <th scope="col">Depense</th>
+                                <th scope="col">Contrat</th>
+                                <th scope="col">Inserée le</th>
+                                <th scope="col">Inserée par</th>
+                                <th scope="col">Validée le</th>
+                                <th scope="col">Validée par</th>
+                                <th scope="col">Commentaire</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                locations?.length > 0 ? (locations.map((location, key) => (
+                                    <tr key={location.id}>
+                                        <th scope="row">{key + 1}</th>
+                                        <td><span className="badge bg-light shadow border rounded text-dark"> {location.reference}</span></td>
+                                        <td><span className="">{`${location.client?.nom} - ${location.client?.prenom}`}</span></td>
+                                        <td>{location.type?.libelle || '---'}</td>
+                                        <td>{location.date_location || '---'}</td>
+                                        <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.montant} </span></td>
+                                        <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.regle} </span></td>
+                                        <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.reste} </span></td>
+                                        <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.depenseAmount}</span></td>
+                                        <td>{location.contrat ? <a href={location.contrat} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}</td>
+                                        <td>{location.createdAt || '---'}</td>
+                                        <td>{location.createdBy?.name || '---'}</td>
+                                        <td>{location.validatedAt || '---'}</td>
+                                        <td>{location.validatedBy?.name || '---'}</td>
+                                        <td><textarea className="form-control" rows="2" placeholder={location.commentaire || '---'}></textarea></td>
+                                    </tr>
+                                ))) : <tr><td colSpan="15" className="text-center">Aucune location n'a été trouvée</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
                 <br /><br /><br /><br />
             </Card>
         </>

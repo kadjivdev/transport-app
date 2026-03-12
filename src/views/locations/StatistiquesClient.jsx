@@ -189,52 +189,53 @@ const StatistiquesClient = () => {
                     }
                 </h5>
 
-                <table className="table table-striped bg-transparent" id="myTable">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Reference</th>
-                            <th scope="col">Client</th>
-                            <th scope="col">Type</th>
-                            <th scope="col">Date</th>
-                            <th scope="col">Montant</th>
-                            <th scope="col">Réglé</th>
-                            <th scope="col">Reste</th>
-                            <th scope="col">Depense</th>
-                            <th scope="col">Contrat</th>
-                            <th scope="col">Inserée le</th>
-                            <th scope="col">Inserée par</th>
-                            <th scope="col">Validée le</th>
-                            <th scope="col">Validée par</th>
-                            <th scope="col">Commentaire</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            locations?.length > 0 ? (locations.map((location, key) => (
-                                <tr key={location.id}>
-                                    <th scope="row">{key + 1}</th>
-                                    <td><span className="badge bg-light shadow border rounded text-dark"> {location.reference}</span></td>
-                                    <td><span className="">{`${location.client?.nom} - ${location.client?.prenom}`}</span></td>
-                                    <td>{location.type?.libelle || '---'}</td>
-                                    <td>{location.date_location || '---'}</td>
-                                    <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.montant} </span></td>
-                                    <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.regle} </span></td>
-                                    <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.reste} </span></td>
-                                    <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.depenseAmount}</span></td>
-                                    <td>{location.contrat ? <a href={location.contrat} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}</td>
-                                    <td>{location.createdAt || '---'}</td>
-                                    <td>{location.createdBy?.name || '---'}</td>
-                                    <td>{location.validatedAt || '---'}</td>
-                                    <td>{location.validatedBy?.name || '---'}</td>
-                                    <td><textarea className="form-control" rows="2" placeholder={location.commentaire || '---'}></textarea></td>
-                                </tr>
-                            ))) : <tr><td colSpan="15" className="text-center">Aucune location n'a été trouvée</td></tr>
-                        }
-                    </tbody>
-                </table>
-
-                <br /><br /><br /><br />
+                <div className="table-responsive">
+                    <table className="table table-striped bg-transparent" id="_myTable">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Reference</th>
+                                <th scope="col">Client</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Montant</th>
+                                <th scope="col">Réglé</th>
+                                <th scope="col">Reste</th>
+                                <th scope="col">Depense</th>
+                                <th scope="col">Contrat</th>
+                                <th scope="col">Inserée le</th>
+                                <th scope="col">Inserée par</th>
+                                <th scope="col">Validée le</th>
+                                <th scope="col">Validée par</th>
+                                <th scope="col">Commentaire</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                locations?.length > 0 ? (locations.map((location, key) => (
+                                    <tr key={location.id}>
+                                        <th scope="row">{key + 1}</th>
+                                        <td><span className="badge bg-light shadow border rounded text-dark"> {location.reference}</span></td>
+                                        <td><span className="">{`${location.client?.nom} - ${location.client?.prenom}`}</span></td>
+                                        <td>{location.type?.libelle || '---'}</td>
+                                        <td>{location.date_location || '---'}</td>
+                                        <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.montant} </span></td>
+                                        <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.regle} </span></td>
+                                        <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.reste} </span></td>
+                                        <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.depenseAmount}</span></td>
+                                        <td>{location.contrat ? <a href={location.contrat} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}</td>
+                                        <td>{location.createdAt || '---'}</td>
+                                        <td>{location.createdBy?.name || '---'}</td>
+                                        <td>{location.validatedAt || '---'}</td>
+                                        <td>{location.validatedBy?.name || '---'}</td>
+                                        <td><textarea className="form-control" rows="2" placeholder={location.commentaire || '---'}></textarea></td>
+                                    </tr>
+                                ))) : <tr><td colSpan="15" className="text-center">Aucune location n'a été trouvée</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <br /><br /><br />
             </Card>
         </>
     )
