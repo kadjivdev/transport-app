@@ -252,12 +252,6 @@ const List = () => {
                     </tbody>
                 </table>
 
-                {/*  */}
-                {/* <Modal
-                    visible={modalVisible}
-                    actionText={actionText}
-                    handleSubmit={submitFunction.current}></Modal> */}
-
                 <CModal
                     visible={modalVisible}
                     onClose={() => setModalVisible(false)}
