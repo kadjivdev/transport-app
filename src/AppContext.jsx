@@ -8,12 +8,14 @@ export const AppContext = createContext();
 
 // Provider component
 export const AppProvider = ({ children }) => {
+    
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [status, setStatus] = useState(null); // 'success', 'error', 'info'
     const [message, setMessage] = useState('');
     const [statusCode, setStatusCode] = useState(null);
+    const [authPermissions, setAuthPermissions] = useState([]);
     const [allPermissions, setAllPermissions] = useState([]);
     const [allRoles, setAllRoles] = useState([]);
 
@@ -25,6 +27,7 @@ export const AppProvider = ({ children }) => {
     const login = useCallback(async (email, password) => {
         setLoading(true);
         setStatus(null);
+
         try {
             const response = await axiosInstance.post(apiRoutes.login, { email, password });
 
@@ -34,6 +37,8 @@ export const AppProvider = ({ children }) => {
             localStorage.setItem("all_roles", JSON.stringify(response.data?.all_roles || []));
             localStorage.setItem("all_permissions", JSON.stringify(response.data?.all_permissions || []));
 
+            // console.log("Les permissions du user :",localStorage.getItem("user")?.permissions)
+            setAuthPermissions(userData.permissions);
             setUser(response.data?.user || response.data);
             setIsAuthenticated(true);
             setStatus('success');
@@ -170,6 +175,7 @@ export const AppProvider = ({ children }) => {
         setModalTitle,
         modalBody,
         setModalBody,
+        authPermissions,
         allPermissions,
         allRoles,
         login,

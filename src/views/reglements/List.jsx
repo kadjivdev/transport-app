@@ -9,7 +9,6 @@ import useDataTable from "src/hooks/useDataTable";
 import axiosInstance from "../../api/axiosInstance";
 import apiRoutes from "../../api/routes"
 import { useApp } from "../../AppContext";
-import { Modal } from "../../components/Modal";
 import InputLabel from "src/components/forms/InputLabel";
 import { useNavigate } from "react-router-dom";
 import ConfirmAlert from "../../hooks/ConfirmAlert";
@@ -22,11 +21,11 @@ const List = () => {
 
     const navigate = useNavigate();
 
-    const currentUser = JSON.parse(localStorage.getItem("user") || "[]");
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
 
     // verification de permission
     const checkPermission = (name) => {
-        return currentUser?.permissions?.some(per => per.name == name);
+        return authUser?.permissions?.some(per => per.name == name);
     }
 
     const [modalUpdateVisible, setModalUpdateVisible] = useState(false);
@@ -165,8 +164,6 @@ const List = () => {
 
         setModalTitle(`Modifier le reglement ## ${reglement.reference} ##`);
         setModalUpdateVisible(true);
-
-        // console.log(`Reglement Current : ${JSON.stringify(currentReglement)}`)
     }
 
     // submit form
@@ -339,7 +336,7 @@ const List = () => {
                             Swal.close();
                         }
                     });
-                    
+
                     setStatus(null);
                     const response = await axiosInstance.delete(apiRoutes.deleteReglement(reglement?.id));
 
@@ -368,9 +365,11 @@ const List = () => {
     return (
         <>
             <Card>
-                <LinkButton route={"/reglements/create"}>
-                    <CIcon className='' icon={cibAddthis} /> Ajouter un reglement
-                </LinkButton>
+                {checkPermission("reglement.create") &&
+                    <LinkButton route={"/reglements/create"}>
+                        <CIcon className='' icon={cibAddthis} /> Ajouter un reglement
+                    </LinkButton>
+                }
 
                 <table className="table table-striped bg-transparent" id="myTable">
                     <thead>

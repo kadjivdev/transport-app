@@ -20,6 +20,8 @@ const LoginForm = () => {
         const { email, password } = e.target;
         const result = await login(email.value, password.value);
 
+        console.log("Les permissions du user :", localStorage.getItem("user"))
+
         if (result.success) {
             e.target.reset();
             setTimeout(() => {

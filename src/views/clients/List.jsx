@@ -20,14 +20,12 @@ const List = () => {
 
     const navigate = useNavigate();
 
-    const currentUser = JSON.parse(localStorage.getItem("user") || "[]");
-
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
     // verification de permission
     const checkPermission = (name) => {
-        return currentUser?.permissions?.some(per => per.name == name);
+        return authUser?.permissions?.some(per => per.name == name);
     }
 
-    const submitFunction = useRef(() => { });
     const [clients, setClients] = useState([]);
     const [currentClient, setCurrentClient] = useState({});
     const [actionText, setActionText] = useState("Enregistrer");
@@ -211,9 +209,11 @@ const List = () => {
     return (
         <>
             <Card>
-                <LinkButton route={"/clients/create"}>
-                    <CIcon className='' icon={cibAddthis} /> Ajouter un client
-                </LinkButton>
+                {checkPermission("client.create") &&
+                    <LinkButton route={"/clients/create"}>
+                        <CIcon className='' icon={cibAddthis} /> Ajouter un client
+                    </LinkButton>
+                }
 
                 <table className="table table-striped bg-transparent" id="myTable">
                     <thead>

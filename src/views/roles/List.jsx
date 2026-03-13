@@ -19,7 +19,7 @@ const List = () => {
     const navigate = useNavigate();
 
     const allPers = JSON.parse(localStorage.getItem("all_permissions") || "[]");
-    const currentUser = JSON.parse(localStorage.getItem("user") || "[]");
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
 
     const [roles, setRoles] = useState([]);
 
@@ -104,7 +104,7 @@ const List = () => {
 
     // verification de permission
     const checkPermission = (name) => {
-        return currentUser?.permissions?.some(per => per.name == name);
+        return authUser?.permissions?.some(per => per.name == name);
     }
 
     // rechercher une permission dans la liste des permissions d'un rôle
@@ -249,9 +249,11 @@ const List = () => {
     return (
         <>
             <Card>
-                <LinkButton route={"/roles/create"}>
-                    <CIcon className='' icon={cibAddthis} /> Ajouter un rôle
-                </LinkButton>
+                {checkPermission("role.create") &&
+                    <LinkButton route={"/roles/create"}>
+                        <CIcon className='' icon={cibAddthis} /> Ajouter un rôle
+                    </LinkButton>
+                }
 
                 <table className="table table-striped bg-transparent" id="myTable">
                     <thead>

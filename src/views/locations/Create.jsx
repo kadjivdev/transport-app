@@ -15,6 +15,12 @@ import Swal from "sweetalert2";
 const Create = () => {
     const { setStatus, setLoading, setMessage, setStatusCode } = useApp();
 
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
+    // verification de permission
+    const checkPermission = (name) => {
+        return authUser?.permissions?.some(per => per.name == name);
+    }
+
     const [dataLocation, setDataLocation] = useState({
         client_id: '',
         location_type_id: '',
@@ -217,9 +223,11 @@ const Create = () => {
             <div className="row">
                 <div className="col-md-2"></div>
                 <div className="col-md-8">
-                    <LinkButton route={"/locations/list"}>
-                        <CIcon className='' icon={cilList} /> Liste des locations
-                    </LinkButton>
+                    {checkPermission("location.list") &&
+                        <LinkButton route={"/locations/list"}>
+                            <CIcon className='' icon={cilList} /> Liste des locations
+                        </LinkButton>
+                    }
 
                     <Card>
                         <form onSubmit={(e) => handleSubmit(e)}>
@@ -367,13 +375,15 @@ const Create = () => {
                                     placeholder="Laissez un commentaire ...."
                                     onChange={(e) => setDataLocation({ ...dataLocation, commentaire: e.target.value })}></textarea>
                             </div>
-                            <br />
-                            <div className="">
-                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
-                            </div>
+
+                            {checkPermission("location.create") &&
+                                <div className="mt-3">
+                                    <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
+                                </div>
+                            }
                         </form>
                     </Card>
-                    <br /><br /><br />
+                    <br /><br />
                 </div>
                 <div className="col-md-2"></div>
             </div>

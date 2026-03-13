@@ -13,6 +13,10 @@ const Create = () => {
     const { register } = useApp()
     const [errors, setErrors] = useState({ name: '', email: '', password: '', password_confirmation: '' });
 
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
+    const checkPermission = (name) => {
+        return authUser?.permissions.some(p => p.name == name);
+    }
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -77,9 +81,11 @@ const Create = () => {
             <div className="row">
                 <div className="col-md-2"></div>
                 <div className="col-md-8">
-                    <LinkButton route={"/users/list"}>
-                        <CIcon className='' icon={cilList} /> Liste des utilisateurs
-                    </LinkButton>
+                    {checkPermission("utilisateur.view") &&
+                        <LinkButton route={"/users/list"}>
+                            <CIcon className='' icon={cilList} /> Liste des utilisateurs
+                        </LinkButton>
+                    }
 
                     <Card>
                         <form onSubmit={(e) => handleSubmit(e)}>
@@ -115,9 +121,11 @@ const Create = () => {
                                 {errors.password_confirmation && <span className="text-danger">{errors.password_confirmation}</span>}
                             </div>
 
-                            <div className="">
-                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
-                            </div>
+                            {checkPermission("utilisateur.create") &&
+                                <div className="">
+                                    <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
+                                </div>
+                            }
                         </form>
                     </Card>
                     <br /><br /><br />

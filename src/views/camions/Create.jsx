@@ -19,6 +19,12 @@ const Create = () => {
 
     const navigate = useNavigate();
 
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
+    // verification de permission
+    const checkPermission = (name) => {
+        return authUser?.permissions?.some(per => per.name == name);
+    }
+
     // handle change
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -81,9 +87,11 @@ const Create = () => {
             <div className="row">
                 <div className="col-md-2"></div>
                 <div className="col-md-8">
-                    <LinkButton route={"/camions/list"}>
-                        <CIcon className='' icon={cilList} /> Liste des Camions
-                    </LinkButton>
+                    {checkPermission("camion.list") &&
+                        <LinkButton route={"/camions/list"}>
+                            <CIcon className='' icon={cilList} /> Liste des Camions
+                        </LinkButton>
+                    }
 
                     <Card>
                         <form onSubmit={(e) => handleSubmit(e)}>
@@ -97,7 +105,7 @@ const Create = () => {
                                         name="libelle"
                                         value={dataCamion?.libelle}
                                         className="form-control"
-                                        placeholder="Renault"
+                                        placeholder="Ex: Renault"
                                         id="libelle"
                                         onChange={(e) => handleChange(e)}
                                         required />
@@ -119,9 +127,11 @@ const Create = () => {
                                     {errors?.immatriculation && <span className="text-danger">{errors?.immatriculation}</span>}
                                 </div>
                             </div>
-                            <div className="">
-                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
-                            </div>
+                            {checkPermission("camion.create") &&
+                                <div className="">
+                                    <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
+                                </div>
+                            }
                         </form>
                     </Card>
                     <br /><br /><br />

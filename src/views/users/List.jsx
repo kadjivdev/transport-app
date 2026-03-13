@@ -24,6 +24,12 @@ const List = () => {
 
     const allRoles = JSON.parse(localStorage.getItem("all_roles") || "[]");
 
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
+    // verification de permission
+    const checkPermission = (name) => {
+        return authUser?.permissions?.some(per => per.name == name);
+    }
+
     const role_id = useRef(null);
     const submitFunction = useRef(() => { });
     const currentUser = useRef(null);
@@ -278,9 +284,11 @@ const List = () => {
     return (
         <>
             <Card>
-                <LinkButton route={"/users/create"}>
-                    <CIcon className='' icon={cibAddthis} /> Ajouter un utilisateur
-                </LinkButton>
+                {checkPermission("utilisateur.create") &&
+                    <LinkButton route={"/users/create"}>
+                        <CIcon className='' icon={cibAddthis} /> Ajouter un utilisateur
+                    </LinkButton>
+                }
 
                 <table className="table table-striped bg-transparent" id="myTable">
                     <thead>
@@ -316,9 +324,9 @@ const List = () => {
                                                 <CIcon className='me-2' icon={cilDialpad} /> Gérer
                                             </a>
                                             <ul className="dropdown-menu w-100">
-                                                <li><a className="dropdown-item btn-light" onClick={(e) => affectRole(e, user)}><CIcon className='me-2' icon={cilLink} /> Affecter un rôle</a></li>
-                                                <li><a className="dropdown-item text-warning" onClick={(e) => updateRole(e, user)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>
-                                                <li><a className="dropdown-item text-danger" onClick={(e) => deleteUser(e, user)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>
+                                                {checkPermission("role.assign") && <li><a className="dropdown-item btn-light" onClick={(e) => affectRole(e, user)}><CIcon className='me-2' icon={cilLink} /> Affecter un rôle</a></li>}
+                                                {checkPermission("utilisateur.edit") && <li><a className="dropdown-item text-warning" onClick={(e) => updateRole(e, user)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
+                                                {checkPermission("utilisateur.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteUser(e, user)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
                                             </ul>
                                         </div>
                                     </td>

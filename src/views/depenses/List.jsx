@@ -22,11 +22,11 @@ const List = () => {
 
     const navigate = useNavigate();
 
-    const currentUser = JSON.parse(localStorage.getItem("user") || "[]");
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
 
     // verification de permission
     const checkPermission = (name) => {
-        return currentUser?.permissions?.some(per => per.name == name);
+        return authUser?.permissions?.some(per => per.name == name);
     }
 
     const [modalUpdateVisible, setModalUpdateVisible] = useState(false);
@@ -316,9 +316,11 @@ const List = () => {
     return (
         <>
             <Card>
-                <LinkButton route={"/depenses/create"}>
-                    <CIcon className='' icon={cibAddthis} /> Ajouter une depense
-                </LinkButton>
+                {checkPermission("depense.create") &&
+                    <LinkButton route={"/depenses/create"}>
+                        <CIcon className='' icon={cibAddthis} /> Ajouter une depense
+                    </LinkButton>
+                }
 
                 <table className="table table-striped bg-transparent" id="myTable">
                     <thead>

@@ -15,6 +15,12 @@ import Swal from "sweetalert2";
 const Create = () => {
     const { setStatus, setLoading, setMessage, setStatusCode } = useApp();
 
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
+    // verification de permission
+    const checkPermission = (name) => {
+        return authUser?.permissions?.some(per => per.name == name);
+    }
+
     const [dataReglement, setDataReglement] = useState({
         location_id: "",
         montant: '',
@@ -167,9 +173,11 @@ const Create = () => {
             <div className="row">
                 <div className="col-md-2"></div>
                 <div className="col-md-8">
-                    <LinkButton route={"/reglements/list"}>
-                        <CIcon className='' icon={cilList} /> Liste des reglements
-                    </LinkButton>
+                    {checkPermission("reglement.list") &&
+                        <LinkButton route={"/reglements/list"}>
+                            <CIcon className='' icon={cilList} /> Liste des reglements
+                        </LinkButton>
+                    }
 
                     <Card>
                         <form onSubmit={(e) => handleSubmit(e)}>
@@ -237,10 +245,11 @@ const Create = () => {
                                 {errors.commentaire && <span className="text-danger">{errors.commentaire}</span>}
                             </div>
 
-                            <br />
-                            <div className="">
-                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
-                            </div>
+                            {checkPermission("reglement.create") &&
+                                <div className="mt-3">
+                                    <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
+                                </div>
+                            }
                         </form>
                     </Card>
                     <br /><br /><br />

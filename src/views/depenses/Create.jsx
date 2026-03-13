@@ -65,6 +65,12 @@ const Create = () => {
         console.log("Data depense :", dataDepense)
     ), [dataDepense]);
 
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
+    // verification de permission
+    const checkPermission = (name) => {
+        return authUser?.permissions?.some(per => per.name == name);
+    }
+
     // amount hundling...
     const handleMontantChange = (value) => {
         setDataDepense((prev) => ({
@@ -140,9 +146,11 @@ const Create = () => {
             <div className="row">
                 <div className="col-md-2"></div>
                 <div className="col-md-8">
-                    <LinkButton route={"/depenses/list"}>
-                        <CIcon className='' icon={cilList} /> Liste des dépenses
-                    </LinkButton>
+                    {checkPermission("depense.list") &&
+                        <LinkButton route={"/depenses/list"}>
+                            <CIcon className='' icon={cilList} /> Liste des dépenses
+                        </LinkButton>
+                    }
 
                     <Card>
                         <form onSubmit={(e) => handleSubmit(e)}>
@@ -210,10 +218,11 @@ const Create = () => {
                                 {errors.commentaire && <span className="text-danger">{errors.commentaire}</span>}
                             </div>
 
-                            <br />
-                            <div className="">
-                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
-                            </div>
+                            {checkPermission("depense.create") &&
+                                <div className="mt-3">
+                                    <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
+                                </div>
+                            }
                         </form>
                     </Card>
                     <br /><br /><br />

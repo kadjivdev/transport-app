@@ -17,6 +17,12 @@ const Create = () => {
     const [dataClient, setDataClient] = useState({ nom: '', prenom: '', phone: '', ifu: '' });
     const [errors, setErrors] = useState({ nom: '', prenom: '', phone: '', ifu: '' });
 
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
+    // verification de permission
+    const checkPermission = (name) => {
+        return authUser?.permissions?.some(per => per.name == name);
+    }
+
     const navigate = useNavigate();
 
     // handle change
@@ -84,9 +90,11 @@ const Create = () => {
             <div className="row">
                 <div className="col-md-2"></div>
                 <div className="col-md-8">
-                    <LinkButton route={"/clients/list"}>
-                        <CIcon className='' icon={cilList} /> Liste des Clients
-                    </LinkButton>
+                    {checkPermission("client.list") &&
+                        <LinkButton route={"/clients/list"}>
+                            <CIcon className='' icon={cilList} /> Liste des Clients
+                        </LinkButton>
+                    }
 
                     <Card>
                         <form onSubmit={(e) => handleSubmit(e)}>
@@ -144,9 +152,11 @@ const Create = () => {
                                 </div>
                             </div>
 
-                            <div className="">
-                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
-                            </div>
+                            {checkPermission("client.create") &&
+                                <div className="">
+                                    <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
+                                </div>
+                            }
                         </form>
                     </Card>
                     <br /><br /><br />

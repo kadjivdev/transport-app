@@ -23,6 +23,12 @@ const Create = () => {
     const [dataRole, setDataRole] = useState({ name: '', permissions: allPermissions?.filter(p => p.checked) });
     const [errors, setErrors] = useState({ name: '', permissions: '' });
 
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
+    // verification de permission
+    const checkPermission = (name) => {
+        return authUser?.permissions?.some(per => per.name == name);
+    }
+
     // formattage des permissions pour les afficher dans le modal de modification d'un rôle
     useEffect(() => {
         setAllPermissions(allPers.map(permission => ({
@@ -96,9 +102,11 @@ const Create = () => {
             <div className="row">
                 <div className="col-md-2"></div>
                 <div className="col-md-8">
-                    <LinkButton route={"/roles/list"}>
-                        <CIcon className='' icon={cilList} /> Liste des rôles
-                    </LinkButton>
+                    {checkPermission("role.view") &&
+                        <LinkButton route={"/roles/list"}>
+                            <CIcon className='' icon={cilList} /> Liste des rôles
+                        </LinkButton>
+                    }
 
                     <Card>
                         <form onSubmit={(e) => handleCreateSubmit(e)}>
@@ -151,8 +159,9 @@ const Create = () => {
                                     </ul>
                                 </div>
                             </div>
-
-                            <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
+                            {checkPermission("role.create") &&
+                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
+                            }
                         </form>
                     </Card>
                     <br /><br /><br />

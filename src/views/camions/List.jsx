@@ -20,14 +20,13 @@ const List = () => {
 
     const navigate = useNavigate();
 
-    const currentUser = JSON.parse(localStorage.getItem("user") || "[]");
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
 
     // verification de permission
     const checkPermission = (name) => {
-        return currentUser?.permissions?.some(per => per.name == name);
+        return authUser?.permissions?.some(per => per.name == name);
     }
 
-    const submitFunction = useRef(() => { });
     const [camions, setCamions] = useState([]);
     const [currentCamion, setCurrentCamion] = useState({});
     const [actionText, setActionText] = useState("Enregistrer");
@@ -213,9 +212,11 @@ const List = () => {
     return (
         <>
             <Card>
-                <LinkButton route={"/camions/create"}>
-                    <CIcon className='' icon={cibAddthis} /> Ajouter un camion
-                </LinkButton>
+                {checkPermission("camion.create") &&
+                    <LinkButton route={"/camions/create"}>
+                        <CIcon className='' icon={cibAddthis} /> Ajouter un camion
+                    </LinkButton>
+                }
 
                 <table className="table table-striped bg-transparent" id="myTable">
                     <thead>

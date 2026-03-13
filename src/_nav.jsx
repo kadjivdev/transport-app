@@ -1,8 +1,6 @@
 import CIcon from '@coreui/icons-react'
 import {
-  cibAutotask,
   cibDraugiemLv,
-  cibFSecure,
   cibGnuPrivacyGuard,
   cibMathworks,
   cibMyspace,
@@ -14,6 +12,12 @@ import {
   cilSpeedometer,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
+
+const authUser = JSON.parse(localStorage.getItem("user") || "null") || {};
+
+const checkPermission = (name) => {
+  return authUser?.permissions?.some(p => p.name === name);
+}
 
 const _nav = [
   {
@@ -33,7 +37,7 @@ const _nav = [
   },
 
   // locations
-  {
+  ...(checkPermission("location.view") || checkPermission("location.create") ? [{
     component: CNavGroup,
     name: 'Locations',
     to: "/locations",
@@ -70,10 +74,10 @@ const _nav = [
         ]
       },
     ]
-  },
+  }] : []),
 
   // reglements
-  {
+  ...(checkPermission("reglement.view") || checkPermission("reglement.create") ? [{
     component: CNavGroup,
     name: 'Règlements',
     to: "/reglements",
@@ -90,10 +94,10 @@ const _nav = [
         to: '/reglements/create',
       },
     ]
-  },
+  }] : []),
 
   // dépenses
-  {
+  ...(checkPermission("depense.view") || checkPermission("depense.create") ? [{
     component: CNavGroup,
     name: 'Dépenses',
     to: "/depenses",
@@ -110,17 +114,16 @@ const _nav = [
         to: '/depenses/create',
       },
     ]
-  },
+  }] : []),
 
   // statistiques
   {
     component: CNavTitle,
     name: 'Gestion des statistiques',
   },
-
   {
     component: CNavGroup,
-    name: 'Statiqtiques',
+    name: 'Statistiques',
     to: "/statistique",
     icon: <CIcon icon={cibMathworks} customClassName="nav-icon" />,
     items: [
@@ -151,7 +154,7 @@ const _nav = [
   },
 
   // les clients
-  {
+  ...(checkPermission("client.view") || checkPermission("client.create") ? [{
     component: CNavGroup,
     name: 'Clients',
     to: "/clients",
@@ -168,10 +171,10 @@ const _nav = [
         to: '/clients/create',
       },
     ]
-  },
+  }] : []),
 
   // les camions
-  {
+  ...(checkPermission("camion.view") || checkPermission("camion.create") ? [{
     component: CNavGroup,
     name: 'Camions',
     to: "/camions",
@@ -188,30 +191,32 @@ const _nav = [
         to: '/camions/create',
       },
     ]
-  },
+  }] : []),
 
   // les users
-  {
-    component: CNavGroup,
-    name: 'Utilisateurs',
-    to: "/users",
-    icon: <CIcon icon={cibMyspace} customClassName="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: 'Liste des utilisateurs',
-        to: '/users/list',
-      },
-      {
-        component: CNavItem,
-        name: 'Ajouter un utilisateur',
-        to: '/users/create',
-      },
-    ]
-  },
+  ...(checkPermission("utilisateur.view") || checkPermission("utilisateur.create") ? [
+    {
+      component: CNavGroup,
+      name: 'Utilisateurs',
+      to: "/users",
+      icon: <CIcon icon={cibMyspace} customClassName="nav-icon" />,
+      items: [
+        {
+          component: CNavItem,
+          name: 'Liste des utilisateurs',
+          to: '/users/list',
+        },
+        {
+          component: CNavItem,
+          name: 'Ajouter un utilisateur',
+          to: '/users/create',
+        },
+      ]
+    }
+  ] : []),
 
   // les roles
-  {
+  ...(checkPermission("role.view") || checkPermission("role.create") ? [{
     component: CNavGroup,
     name: 'Rôles',
     to: "/roles",
@@ -228,8 +233,7 @@ const _nav = [
         to: '/roles/create',
       },
     ]
-  },
-
+  }] : []),
 ]
 
 export default _nav
