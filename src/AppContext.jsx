@@ -8,7 +8,7 @@ export const AppContext = createContext();
 
 // Provider component
 export const AppProvider = ({ children }) => {
-    
+
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -37,7 +37,8 @@ export const AppProvider = ({ children }) => {
             localStorage.setItem("all_roles", JSON.stringify(response.data?.all_roles || []));
             localStorage.setItem("all_permissions", JSON.stringify(response.data?.all_permissions || []));
 
-            // console.log("Les permissions du user :",localStorage.getItem("user")?.permissions)
+            console.log("Les permissions du user :", JSON.parse(localStorage.getItem("user")))
+
             setAuthPermissions(userData.permissions);
             setUser(response.data?.user || response.data);
             setIsAuthenticated(true);

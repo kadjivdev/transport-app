@@ -11,16 +11,20 @@ import {
 } from '@coreui/react'
 
 import { AppSidebarNav } from './AppSidebarNav'
+import { useApp } from '../AppContext'
 
 import logo from '../../public/transport.png'
 
 // sidebar nav config
-import navigation from '../_nav'
+import getNavigation from '../_nav'
 
 const AppSidebar = () => {
   const dispatch = useDispatch()
   const unfoldable = useSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.sidebarShow)
+  const { authPermissions } = useApp()
+  const userPermissions = JSON.parse(localStorage.getItem("user"))?.permissions
+  const navigation = getNavigation(userPermissions)
 
   return (
     <CSidebar
