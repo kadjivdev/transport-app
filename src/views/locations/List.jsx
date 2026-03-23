@@ -55,8 +55,11 @@ const List = () => {
         date_location: '',
         contrat: '',
         commentaire: '',
+        carriere: '',
+        site_dechargement: '',
         details: [{
             price: '',
+            qte: '',
             camion_id: ''
         },]
     });
@@ -68,6 +71,8 @@ const List = () => {
         commentaire: '',
         details: ''
     });
+
+    const [showQte, setShowQte] = useState(true);
 
     const getClients = useCallback(async function () {
         try {
@@ -156,6 +161,12 @@ const List = () => {
         }
     }, [])
 
+    // handle quantite change
+    useEffect(() => {
+        setShowQte(dataLocation.location_type_id === 3)
+        console.log("Type de location changed :")
+    }, [dataLocation.location_type_id])
+
     // initialisation des données
     useEffect(function () {
         // chargements des clients
@@ -180,6 +191,8 @@ const List = () => {
     const showDetail = (e, location) => {
         setCurrentLocation(location)
 
+        console.log("Choosed location :", location)
+
         setModalTitle(`Détails de la location ##${location.reference}`)
 
         setModalVisible(true)
@@ -199,7 +212,9 @@ const List = () => {
             date_location: location.date.split("T")?.[0],
             commentaire: location.commentaire ?? "",
             details: location.details ?? [],
-            contrat: null
+            contrat: null,
+            carriere: location.carriere,
+            site_dechargement: location.site_dechargement,
         })
 
         console.log("payload:", dataLocation)
@@ -258,6 +273,8 @@ const List = () => {
             formData.append("location_type_id", dataLocation.location_type_id)
             formData.append("date_location", dataLocation.date_location)
             formData.append("commentaire", dataLocation.commentaire)
+            formData.append("carriere", dataLocation.carriere)
+            formData.append("site_dechargement", dataLocation.site_dechargement)
 
             if (dataLocation.contrat) {
                 formData.append("contrat", dataLocation.contrat)
@@ -265,6 +282,7 @@ const List = () => {
 
             dataLocation.details.forEach((detail, index) => {
                 formData.append(`details[${index}][camion_id]`, detail.camion_id)
+                formData.append(`details[${index}][qte]`, detail.qte)
                 formData.append(`details[${index}][price]`, detail.price)
             })
 
@@ -419,6 +437,7 @@ const List = () => {
                     </LinkButton>
                 }
 
+                {/* Table */}
                 <table className="table table-striped bg-transparent" id="myTable">
                     <thead>
                         <tr>
@@ -439,6 +458,8 @@ const List = () => {
                             <th scope="col">Validée le</th>
                             <th scope="col">Validée par</th>
                             <th scope="col">Commentaire</th>
+                            <th scope="col">Carrière</th>
+                            <th scope="col">Site de dechargement</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -479,9 +500,10 @@ const List = () => {
                                     <td>
                                         <textarea className="form-control" rows="2" placeholder={location.commentaire || '---'}></textarea>
                                     </td>
-
+                                    <td>{location.carriere || '---'}</td>
+                                    <td>{location.site_dechargement || '---'}</td>
                                 </tr>
-                            )) : <tr><td colSpan="17" className="text-center">Aucune location n'a été trouvée</td></tr>
+                            )) : <tr><td colSpan="19" className="text-center">Aucune location n'a été trouvée</td></tr>
                         }
                     </tbody>
                 </table>
@@ -499,16 +521,25 @@ const List = () => {
                                     key={index}
                                 >
                                     <div className="">
-                                        <input type="number"
-                                            className="form-control"
-                                            readOnly={true}
-                                            value={detail.price} />
-                                    </div>
-                                    <div className="">
                                         <input type="text"
                                             className="form-control"
                                             readOnly={true}
                                             value={detail.camion?.libelle} />
+                                    </div>
+                                    {
+                                        currentLocation.type?.id === 3 &&
+                                        <div className="">
+                                            <input type="number"
+                                                className="form-control"
+                                                readOnly={true}
+                                                value={detail.qte} />
+                                        </div>
+                                    }
+                                    <div className="">
+                                        <input type="number"
+                                            className="form-control"
+                                            readOnly={true}
+                                            value={detail.price} />
                                     </div>
                                 </div>
                             )) : <p className="text-danger text-center">Aucun camion!</p>
@@ -574,6 +605,8 @@ const List = () => {
                             />
                             {errors.location_type_id && <span className="text-danger">{errors.location_type_id}</span>}
                         </div>
+
+
                         <div className="mb-3">
                             <InputLabel
                                 htmlFor="date"
@@ -586,6 +619,39 @@ const List = () => {
                                 required />
                             {errors.date && <span className="text-danger">{errors.date}</span>}
                         </div>
+
+                        <div className="row">
+                            <div className="col-md-6">
+                                <div className="mb-3">
+                                    <InputLabel
+                                        htmlFor="carriere"
+                                        text="Carrière" />
+                                    <input type="text" name="carriere"
+                                        className="form-control" id="carriere"
+                                        placeholder="Ex: Carrière"
+                                        value={dataLocation.carriere}
+                                        onChange={(e) => setDataLocation({ ...dataLocation, carriere: e.target.value })}
+                                        required />
+                                    {errors.date && <span className="text-danger">{errors.carriere}</span>}
+                                </div>
+                            </div>
+                            <div className="col-md-6">
+                                <div className="mb-3">
+                                    <InputLabel
+                                        htmlFor="site_dechargement"
+                                        text="Site de dechargement" />
+                                    <input type="text" name="site_dechargement"
+                                        className="form-control"
+                                        placeholder="Ex: Site de dechargement"
+                                        value={dataLocation.site_dechargement}
+                                        id="site_dechargement"
+                                        onChange={(e) => setDataLocation({ ...dataLocation, site_dechargement: e.target.value })}
+                                        required />
+                                    {errors.date && <span className="text-danger">{errors.site_dechargement}</span>}
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="mb-3">
                             <InputLabel
                                 htmlFor="contrat"
@@ -596,7 +662,7 @@ const List = () => {
                             {errors.contrat && <span className="text-danger">{errors.contrat}</span>}
                         </div>
 
-                        {/* Details dela location */}
+                        {/* Details de la location */}
                         <div className="mb-3">
                             <button className="btn my-2 btn-sm btn-success text-white"
                                 onClick={(e) => addDetail(e)}>
@@ -609,6 +675,7 @@ const List = () => {
                                 <div className="align-items-center d-flex justify-content-between"
                                     key={index}
                                 >
+                                    {/* Prix */}
                                     <div className="">
                                         <InputLabel
                                             text="Le prix "
@@ -624,6 +691,28 @@ const List = () => {
                                                 setDataLocation({ ...dataLocation, details: allDetail })
                                             }} />
                                     </div>
+
+                                    {/* Qte pour les types par tonnage*/}
+                                    {
+                                        showQte &&
+                                        <div className="mx-1">
+                                            <InputLabel
+                                                text="La quantité "
+                                                required={true} />
+                                            <input type="number"
+                                                className="form-control"
+                                                required
+                                                placeholder="Ex: 10"
+                                                value={detail.qte}
+                                                onChange={function (e) {
+                                                    let allDetail = [...dataLocation.details]
+                                                    allDetail[index].qte = e.target.value
+                                                    setDataLocation({ ...dataLocation, details: allDetail })
+                                                }} />
+                                        </div>
+                                    }
+
+                                    {/* Camion */}
                                     <div className="">
                                         <InputLabel
                                             text="Le Camion "

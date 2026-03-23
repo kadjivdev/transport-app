@@ -26,9 +26,12 @@ const Create = () => {
         location_type_id: '',
         date_location: '',
         contrat: '',
+        carriere: '',
+        site_dechargement: '',
         commentaire: '',
         details: [{
             price: '',
+            qte: '',
             camion_id: ''
         },]
     });
@@ -39,12 +42,16 @@ const Create = () => {
         date_location: '',
         contrat: '',
         commentaire: '',
+        carriere: '',
+        site_dechargement: '',
         details: ''
     });
 
     const [clients, setClients] = useState([]);
     const [types, setTypes] = useState([]);
     const [camions, setCamions] = useState([]);
+
+    const [showQte, setShowQte] = useState(true);
 
     // les clients
     const getClients = useCallback(async function () {
@@ -122,6 +129,12 @@ const Create = () => {
     }, [])
 
     const navigate = useNavigate();
+
+    // handle quantite change
+    useEffect(() => {
+        setShowQte(dataLocation.location_type_id === 3)
+        console.log("Type de location changed :")
+    }, [dataLocation.location_type_id])
 
     useEffect(() => (
         console.log("Data location :", dataLocation)
@@ -277,7 +290,7 @@ const Create = () => {
                                             label: `${type.libelle}`,
                                         }))
                                         .find((option) => option.value === dataLocation.location_type_id)} // set selected option
-                                    onChange={(option) => setDataLocation({ ...dataLocation, location_type_id: option.value })} // update state with id
+                                    onChange={(option) => setDataLocation({ ...dataLocation, location_type_id: option.value, details: [] })} // update state with id
                                 />
                                 {errors.location_type_id && <span className="text-danger">{errors.location_type_id}</span>}
                             </div>
@@ -293,6 +306,37 @@ const Create = () => {
                                     required />
                                 {errors.date && <span className="text-danger">{errors.date}</span>}
                             </div>
+
+                            <div className="row">
+                                <div className="col-md-6">
+                                    <div className="mb-3">
+                                        <InputLabel
+                                            htmlFor="carriere"
+                                            text="Carrière"/>
+                                        <input type="text" name="carriere"
+                                            className="form-control" id="carriere"
+                                            placeholder="Ex: Carrière"
+                                            onChange={(e) => setDataLocation({ ...dataLocation, carriere: e.target.value })}
+                                            required />
+                                        {errors.date && <span className="text-danger">{errors.carriere}</span>}
+                                    </div>
+                                </div>
+                                <div className="col-md-6">
+                                    <div className="mb-3">
+                                        <InputLabel
+                                            htmlFor="site_dechargement"
+                                            text="Site de dechargement" />
+                                        <input type="text" name="site_dechargement"
+                                            className="form-control"
+                                            placeholder="Ex: Site de dechargement"
+                                            id="site_dechargement"
+                                            onChange={(e) => setDataLocation({ ...dataLocation, site_dechargement: e.target.value })}
+                                            required />
+                                        {errors.date && <span className="text-danger">{errors.site_dechargement}</span>}
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="mb-3">
                                 <InputLabel
                                     htmlFor="contrat"
@@ -303,7 +347,7 @@ const Create = () => {
                                 {errors.contrat && <span className="text-danger">{errors.contrat}</span>}
                             </div>
 
-                            {/* Details dela location */}
+                            {/* Details de la location */}
                             <div className="mb-3">
                                 <button className="btn my-2 btn-sm btn-success text-white"
                                     onClick={(e) => addDetail(e)}>
@@ -316,6 +360,7 @@ const Create = () => {
                                     <div className="align-items-center d-flex justify-content-between"
                                         key={index}
                                     >
+                                        {/* Price */}
                                         <div className="">
                                             <InputLabel
                                                 text="Le prix "
@@ -330,6 +375,27 @@ const Create = () => {
                                                     setDataLocation({ ...dataLocation, details: allDetail })
                                                 }} />
                                         </div>
+
+                                        {/* Qte pour les types par tonnage*/}
+                                        {
+                                            showQte &&
+                                            <div className="mx-1">
+                                                <InputLabel
+                                                    text="La quantité "
+                                                    required={true} />
+                                                <input type="number"
+                                                    className="form-control"
+                                                    required
+                                                    placeholder="Ex: 10"
+                                                    onChange={function (e) {
+                                                        let allDetail = [...dataLocation.details]
+                                                        allDetail[index].qte = e.target.value
+                                                        setDataLocation({ ...dataLocation, details: allDetail })
+                                                    }} />
+                                            </div>
+                                        }
+
+                                        {/* Camion */}
                                         <div className="">
                                             <InputLabel
                                                 text="Le Camion "

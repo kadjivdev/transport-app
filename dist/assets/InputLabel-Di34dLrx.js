@@ -1,0 +1,1 @@
+import{j as a}from"./index-CXKs9vIo.js";const n=({children:s})=>a.jsx("div",{className:"card p-2 border shadow-sm",children:s}),t=({text:s,htmlFor:r,required:e})=>a.jsxs("label",{htmlFor:r,className:"form-label",children:[s," ",e?a.jsx("span",{className:"text-danger",children:"*"}):null]});export{n as C,t as I};
