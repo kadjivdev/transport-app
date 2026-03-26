@@ -1,4 +1,4 @@
-import { cibAddthis, cilCut, cilList, cilSend } from "@coreui/icons";
+import { cilList, cilSend } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Card from "src/components/Card";
@@ -23,19 +23,23 @@ const Create = () => {
 
     const [dataReglement, setDataReglement] = useState({
         location_id: "",
+        camions: '',
         montant: '',
         preuve: "",
         commentaire: "",
     });
     const [errors, setErrors] = useState({
         location_id: "",
+        camions: '',
         montant: "",
         preuve: "",
         commentaire: "",
     });
 
     const [locations, setLocations] = useState([]);
+    const [camions, setCamions] = useState([]);
     const currentLocation = useRef([])
+    const [showClient, setShowClient] = useState(false)
 
     // les locations
     const getLocations = useCallback(async function () {
@@ -72,30 +76,44 @@ const Create = () => {
         console.log("Data reglement :", dataReglement)
     ), [dataReglement]);
 
+    useEffect(() => (
+        console.log("Data camions :", camions)
+    ), [camions]);
+
     const handleLocationChange = (value) => {
         let location = locations.find(loca => loca.id == value);
         if (!location) return;
 
+        console.log("Location choosed :", location);
+
         currentLocation.current = location
+
+        setCamions(location.details?.map((detail) => ({
+            id: detail.camion.id,
+            libelle: detail.camion.libelle,
+            immatriculation: detail.camion.immatriculation,
+        })))
+
+        setShowClient(true)
 
         setDataReglement((prev) => ({
             ...prev,
-            location_id: value, montant: location._reste
+            location_id: value, montant: location.client?.solde
         }));
     }
 
     // amount hundling...
     const handleMontantChange = (value) => {
 
-        if (value > currentLocation.current?._reste) {
+        if (value > currentLocation.current?.client?.solde) {
             Swal.fire({
                 'title': 'Montant invalide',
-                text: `Le montant maximum restant est de : ${currentLocation.current?._reste}`
+                text: `Le solde maximum restant pour le client est de : ${currentLocation.current?.client?.solde}`
             })
 
             setDataReglement((prev) => ({
                 ...prev,
-                montant: currentLocation.current?._reste
+                montant: currentLocation.current?.client?.solde
             }));
             return;
         }
@@ -138,6 +156,7 @@ const Create = () => {
 
             setErrors({
                 location_id: "",
+                camions: '',
                 montant: "",
                 preuve: "",
                 commentaire: "",
@@ -145,7 +164,7 @@ const Create = () => {
 
             setStatus('success');
             setMessage(`Le reglement a été crée avec succès!`);
-            setStatusCode(200);
+            setStatusCode(response.data?.status);
 
             return navigate("/reglements/list");
         } catch (error) {
@@ -175,7 +194,7 @@ const Create = () => {
                 <div className="col-md-8">
                     {checkPermission("reglement.list") &&
                         <LinkButton route={"/reglements/list"}>
-                            <CIcon className='' icon={cilList} /> Liste des reglements
+                            <CIcon icon={cilList} /> Liste des reglements
                         </LinkButton>
                     }
 
@@ -194,18 +213,58 @@ const Create = () => {
                                     className="form-control mt-1 block w-full"
                                     options={locations?.map((location) => ({
                                         value: location.id,
-                                        label: `${location.reference}`,
+                                        label: `${location.reference} - Reste à regler : ${location.reste}`,
                                     }))}
                                     value={locations
                                         .map((location) => ({
                                             value: location.id,
-                                            label: `${location.reference}`,
+                                            label: `${location.reference} - Reste à regler : ${location.reste}`,
                                         }))
                                         .find((option) => option.value === dataReglement.location_id)} // set selected option
                                     onChange={(option) => handleLocationChange(option.value)} // update state with id
                                 />
                                 {errors.location_id && <span className="text-danger">{errors.location_id}</span>}
                             </div>
+
+                            {
+                                showClient &&
+                                (
+                                    <div className="">
+                                        <div className="mb-3">
+                                            <InputLabel
+                                                htmlFor="camion"
+                                                text="Précisez le camion"
+                                                required={true} />
+                                            <Select
+                                                placeholder="Rechercher un camion ..."
+                                                name="camions"
+                                                id="camions"
+                                                required
+                                                className="form-control mt-1 block w-full"
+                                                isMulti={true}
+                                                options={camions.map((camion) => ({
+                                                    value: camion.id,
+                                                    label: `${camion.libelle}`,
+                                                }))}
+                                                onChange={(options) => setDataReglement({ ...dataReglement, camions: options ? options.map(opt => opt.value) : [] })} // update state with id
+                                            />
+                                            {errors.camions && <span className="text-danger">{errors.camions}</span>}
+                                        </div>
+
+                                        <div className="mb-3">
+
+                                            <InputLabel
+                                                htmlFor="montant"
+                                                text="Le client concerné.e" />
+                                            <input type="text"
+                                                className="form-control"
+                                                value={`${currentLocation.current?.client?.nom} - ${currentLocation.current?.client?.prenom} | Solde : ${currentLocation.current?.client?.solde}`}
+                                                readOnly={true}
+                                            />
+                                            {errors.montant && <span className="text-danger">{errors.montant}</span>}
+                                        </div>
+                                    </div>)
+                            }
 
                             <div className="mb-3">
                                 <InputLabel

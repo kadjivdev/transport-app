@@ -1,4 +1,4 @@
-import { cibAddthis, cilCheckCircle, cilCloudDownload, cilCut, cilDelete, cilDialpad, cilFile, cilList, cilPencil, cilSend, cilTrash } from "@coreui/icons";
+import { cibAddthis, cilCheckCircle, cilCloudDownload, cilDelete, cilDialpad, cilList, cilPencil, cilSend, cilTrash } from "@coreui/icons";
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
 
 import CIcon from "@coreui/icons-react";
@@ -33,16 +33,23 @@ const List = () => {
     const [locations, setLocations] = useState([]);
     const [reglements, setReglements] = useState([]);
     const [currentReglement, setCurrentReglement] = useState({});
+    const [modalCamionsVisible, setModalCamionsVisible] = useState(false);
+
+    const [camions, setCamions] = useState([]);
+    const currentLocation = useRef({})
+    const [showClient, setShowClient] = useState(false)
 
     // 
     const [dataReglement, setDataReglement] = useState({
         location_id: "",
+        camions: "",
         montant: "",
         preuve: "",
         commentaire: "",
     });
     const [errors, setErrors] = useState({
         location_id: "",
+        camions: "",
         montant: "",
         preuve: "",
         commentaire: "",
@@ -111,39 +118,54 @@ const List = () => {
         console.log("Data reglement :", dataReglement)
     ), [dataReglement]);
 
+    useEffect(() => (
+        console.log("Data camions :", camions)
+    ), [camions]);
+
     const handleLocationChange = (value) => {
         let location = locations.find(loca => loca.id == value);
         if (!location) return;
 
-        currentReglement(location)
+        console.log("Location choosed :", location);
+
+        // tous les camions de la location de ce reglement
+        setCamions(location?.details?.map(detail => ({ ...detail })))
+
+        currentLocation.current = location
+
+        setCamions(location.details?.map((detail) => ({
+            id: detail.camion.id,
+            libelle: detail.camion.libelle,
+            immatriculation: detail.camion.immatriculation,
+        })))
+
+        setShowClient(true)
 
         setDataReglement((prev) => ({
             ...prev,
-            location_id: value, montant: location._reste
+            location_id: value, montant: location.client?.solde
         }));
     }
 
     // amount hundling...
     const handleMontantChange = (value) => {
-        console.log("the value :", value)
-        console.log("the current reglement :", currentReglement)
 
-        if (value > currentReglement.location?.reste_a_regler) {
+        if (value > currentLocation.current?.client?.solde) {
             Swal.fire({
                 'title': 'Montant invalide',
-                text: `Le montant maximum restant est de : ${currentReglement.location?.reste_a_regler}`
+                text: `Le solde maximum restant pour le client est de : ${currentLocation.current?.client?.solde}`
             })
 
             setDataReglement((prev) => ({
                 ...prev,
-                montant: currentReglement.location?.reste_a_regler
+                montant: currentLocation.current?.client?.solde
             }));
             return;
         }
 
         setDataReglement((prev) => ({
             ...prev,
-            montant: value,
+            montant: value
         }));
     }
 
@@ -151,12 +173,20 @@ const List = () => {
     const updateReglement = (e, reglement) => {
         e.preventDefault();
 
+
         setCurrentReglement(reglement)
+        setShowClient(true)
+
+        currentLocation.current = reglement.location
+
+        // tous les camions de la location de ce reglement
+        setCamions(reglement.location?.details?.map(detail => ({ ...detail.camion })))
 
         console.log("The reglement : ", reglement)
 
         setDataReglement({
             location_id: reglement.location?.id,
+            camions: reglement.camions?.map(c => ({ id: c.id, libelle: c.libelle })),
             montant: reglement.montant,
             preuve: null,
             commentaire: reglement.commentaire,
@@ -171,6 +201,27 @@ const List = () => {
         e.preventDefault();
 
         console.log('Données du reglement à modifier :', dataReglement);
+
+        if (dataReglement.montant > currentLocation.current?.client?.solde) {
+            Swal.fire({
+                'title': 'Montant invalide',
+                text: `Le solde maximum restant pour le client est de : ${currentLocation.current?.client?.solde}`
+            })
+
+            setDataReglement((prev) => ({
+                ...prev,
+                montant: currentLocation.current?.client?.solde
+            }));
+            return;
+        }
+
+        if (dataReglement.montant > currentLocation.current?.reste_a_regler) {
+            Swal.fire({
+                title: 'Montant invalide',
+                text: `Le montant maximum restant à régler sur cette location est de : ${currentReglement.location?.reste_a_regler} FCFA`
+            })
+            return;
+        }
 
         Swal.fire({
             title: "Opération en cours...",
@@ -188,14 +239,6 @@ const List = () => {
 
         setStatus(null);
 
-        if (dataReglement.montant > currentReglement.location?.reste_a_regler) {
-            Swal.fire({
-                title: 'Montant invalide',
-                text: `Le montant maximum restant à régler sur cette location est de : ${currentReglement.location?.reste_a_regler} FCFA`
-            })
-            return;
-        }
-
         try {
 
             const formData = new FormData()
@@ -206,19 +249,22 @@ const List = () => {
             formData.append("montant", dataReglement.montant)
             formData.append("commentaire", dataReglement.commentaire)
 
+            dataReglement.camions.forEach((camion, index) => {
+                formData.append(`camions[${index}][id]`, JSON.stringify(camion.id))  // On envoie chaque camion séparément
+                formData.append(`camions[${index}][libelle]`, JSON.stringify(camion.libelle))  // On envoie chaque camion séparément
+            });
+
+
             if (dataReglement.preuve) {
                 formData.append("preuve", dataReglement.preuve)
             }
-
-            // for (let [key, value] of formData.entries()) {
-            //     console.log(key, value);
-            // }
 
             formData.append("_method", "PATCH");
             const response = await axiosInstance.post(apiRoutes.updateReglement(currentReglement?.id), formData);
 
             setErrors({
                 location_id: "",
+                camions: "",
                 montant: "",
                 preuve: "",
                 commentaire: "",
@@ -362,6 +408,15 @@ const List = () => {
         });
     };
 
+    /**
+     * Show Camions
+     */
+    const showCamions = (reglement) => {
+        setCurrentReglement(reglement);
+        setModalCamionsVisible(true);
+        setModalTitle(`Liste des camions liés aux règlement ## ${reglement.reference} ##`);
+    }
+
     return (
         <>
             <Card>
@@ -371,20 +426,22 @@ const List = () => {
                     </LinkButton>
                 }
 
+                {/* tableau */}
                 <table className="table table-striped bg-transparent" id="myTable">
                     <thead>
                         <tr>
                             <th scope="col">#</th>
+                            <th scope="col">Action</th>
                             <th scope="col">Reference</th>
                             <th scope="col">Location</th>
                             <th scope="col">Montant</th>
                             <th scope="col">Preuve</th>
+                            <th scope="col">Camions</th>
                             <th scope="col">Inserée le</th>
                             <th scope="col">Inserée par</th>
                             <th scope="col">Validée le</th>
                             <th scope="col">Validée par</th>
                             <th scope="col">Commentaire</th>
-                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -392,19 +449,6 @@ const List = () => {
                             reglements.length > 0 ? reglements.map((reglement, key) => (
                                 <tr key={key} id={`row-${reglement.id}`}>
                                     <th scope="row">{key + 1}</th>
-                                    <td>{reglement.reference}</td>
-                                    <td>{`${reglement.location?.reference}`}</td>
-                                    <td><button className="btn btn-sm shadow text-success" readOnly>{reglement.montant} </button></td>
-                                    <td>
-                                        {reglement.preuve ? <a href={reglement.preuve} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}
-                                    </td>
-                                    <td>{reglement.createdAt || '---'}</td>
-                                    <td>{reglement.createdBy?.name || '---'}</td>
-                                    <td>{reglement.validatedAt || '---'}</td>
-                                    <td>{reglement.validatedBy?.name || '---'}</td>
-                                    <td>
-                                        <textarea className="form-control" rows="1" placeholder={reglement.commentaire || '---'}></textarea>
-                                    </td>
                                     <td>
                                         {!reglement.validatedAt ?
                                             <div className="dropdown">
@@ -418,8 +462,22 @@ const List = () => {
                                                 </ul>
                                             </div> : '---'}
                                     </td>
+                                    <td>{reglement.reference}</td>
+                                    <td>{`${reglement.location?.reference}`}</td>
+                                    <td><button className="btn btn-sm shadow text-success" readOnly>{reglement.montant} </button></td>
+                                    <td>
+                                        {reglement.preuve ? <a href={reglement.preuve} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}
+                                    </td>
+                                    <td> <button className="btn btn-light shadow rounded border" onClick={() => showCamions(reglement)}><CIcon icon={cilList} /></button> </td>
+                                    <td>{reglement.createdAt || '---'}</td>
+                                    <td>{reglement.createdBy?.name || '---'}</td>
+                                    <td>{reglement.validatedAt || '---'}</td>
+                                    <td>{reglement.validatedBy?.name || '---'}</td>
+                                    <td>
+                                        <textarea className="form-control" rows="1" placeholder={reglement.commentaire || '---'}></textarea>
+                                    </td>
                                 </tr>
-                            )) : <tr><td colSpan="11" className="text-center">Aucun reglement n'a été trouvé</td></tr>
+                            )) : <tr><td colSpan="12" className="text-center">Aucun reglement n'a été trouvé</td></tr>
                         }
                     </tbody>
                 </table>
@@ -445,18 +503,62 @@ const List = () => {
                                 className="form-control mt-1 block w-full"
                                 options={locations?.map((location) => ({
                                     value: location.id,
-                                    label: `${location.reference}`,
+                                    label: `${location.reference} - Reste à regler : ${location.reste}`,
                                 }))}
                                 value={locations
                                     .map((location) => ({
                                         value: location.id,
-                                        label: `${location.reference}`,
+                                        label: `${location.reference} - Reste à regler : ${location.reste}`,
                                     }))
                                     .find((option) => option.value === dataReglement.location_id)} // set selected option
                                 onChange={(option) => handleLocationChange(option.value)} // update state with id
                             />
                             {errors.location_id && <span className="text-danger">{errors.location_id}</span>}
                         </div>
+
+                        {
+                            showClient &&
+                            (
+                                <div className="">
+                                    <div className="mb-3">
+                                        <InputLabel
+                                            htmlFor="camion"
+                                            text="Précisez le camion"
+                                            required={true} />
+                                        <Select
+                                            placeholder="Rechercher un camion ..."
+                                            name="camions"
+                                            id="camions"
+                                            required
+                                            className="form-control mt-1 block w-full"
+                                            isMulti={true}
+                                            value={dataReglement.camions?.map((camion) => ({
+                                                value: camion.id,
+                                                label: `${camion.libelle}`,
+                                            }))}
+                                            options={camions.map((camion) => ({
+                                                value: camion.id,
+                                                label: `${camion.libelle}`,
+                                            }))}
+                                            onChange={(options) => setDataReglement({ ...dataReglement, camions: options.map(opt => ({ id: opt.value, libelle: opt.label })) ?? [] })} // update state with id
+                                        />
+                                        {errors.camions && <span className="text-danger">{errors.camions}</span>}
+                                    </div>
+
+                                    <div className="mb-3">
+
+                                        <InputLabel
+                                            htmlFor="montant"
+                                            text="Le client concerné.e" />
+                                        <input type="text"
+                                            className="form-control"
+                                            value={`${currentLocation.current?.client?.nom} - ${currentLocation.current?.client?.prenom} | Solde : ${currentLocation.current?.client?.solde}`}
+                                            readOnly={true}
+                                        />
+                                        {errors.montant && <span className="text-danger">{errors.montant}</span>}
+                                    </div>
+                                </div>)
+                        }
 
                         <div className="mb-3">
                             <InputLabel
@@ -475,11 +577,10 @@ const List = () => {
                         <div className="mb-3">
                             <InputLabel
                                 htmlFor="preuve"
-                                text="La preuve du reglement"
-                                required={false} />
+                                text="La preuve du reglement" />
                             <input type="file" name="preuve"
                                 className="form-control" id="contrat"
-                                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                                // required
                                 onChange={(e) => setDataReglement({ ...dataReglement, preuve: e.target.files[0] })} />
                             {errors.preuve && <span className="text-danger">{errors.preuve}</span>}
                         </div>
@@ -491,18 +592,45 @@ const List = () => {
                                 required={false} />
                             <textarea name="commentaire" className="form-control"
                                 rows="2"
-                                value={dataReglement.commentaire}
                                 placeholder="Laissez un commentaire ...."
+                                value={dataReglement.commentaire}
                                 onChange={(e) => setDataReglement({ ...dataReglement, commentaire: e.target.value })}></textarea>
                             {errors.commentaire && <span className="text-danger">{errors.commentaire}</span>}
                         </div>
 
-                        <br />
-                        <div className="">
-                            <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
-                        </div>
-                        <br /><br /><br />
+                        {checkPermission("reglement.edit") &&
+                            <div className="mt-3">
+                                <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
+                            </div>
+                        }
                     </form>
+                </CModal>
+
+                {/* Les camions */}
+                <CModal
+                    visible={modalCamionsVisible}
+                    onClose={() => setModalCamionsVisible(false)}
+                    aria-labelledby="LiveDemoExampleLabel"
+                >
+                    <CModalHeader>
+                        <CModalTitle >{modalTitle || 'Modal par défaut'}</CModalTitle>
+                    </CModalHeader>
+                    <CModalBody>
+                        <div className="mb-3">
+                            <ol className="list-group list-group-numbered">
+                                {
+                                    currentReglement?.camions?.length > 0 ? currentReglement.camions?.map((camion, key) => (
+                                        <li key={key} className="list-group-item">{camion.libelle} - ({camion.immatriculation})</li>
+                                    )) : <li className="list-group-item text-danger">Aucun camion retrouvé</li>
+                                }
+                            </ol>
+                        </div>
+                    </CModalBody>
+                    <CModalFooter>
+                        <CButton color="warning" onClick={() => setModalCamionsVisible(false)}>
+                            <CIcon icon={cilDelete} /> Fermer
+                        </CButton>
+                    </CModalFooter>
                 </CModal>
             </Card>
         </>

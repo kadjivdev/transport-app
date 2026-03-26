@@ -219,10 +219,10 @@ const List = () => {
                     <thead>
                         <tr>
                             <th scope="col">#</th>
-                            <th scope="col">Nom</th>
-                            <th scope="col">Prénom</th>
+                            <th scope="col">Nom & Prénom</th>
                             <th scope="col">Phone</th>
                             <th scope="col">Ifu</th>
+                            <th scope="col">Solde</th>
                             <th scope="col">Crée le</th>
                             <th scope="col">Action</th>
                         </tr>
@@ -232,10 +232,10 @@ const List = () => {
                             clients.length > 0 ? clients.map((client, key) => (
                                 <tr key={key} id={`row-${client.id}`}>
                                     <th scope="row">{key + 1}</th>
-                                    <td>{client.nom}</td>
-                                    <td>{client.prenom}</td>
+                                    <td>{`${client.nom} ${client.prenom}`}</td>
                                     <td>{client.phone}</td>
                                     <td>{client.ifu}</td>
+                                    <td className="text-center"><span className="badge bg-light bord rounded shadow text-success">{client.solde}</span></td>
                                     <td>{client.createdAt}</td>
                                     <td>
                                         <div className="dropdown">

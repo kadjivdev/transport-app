@@ -9,6 +9,7 @@ import {
   cibSamsungPay,
   cibTrainerroad,
   cilAlignCenter,
+  cilMoney,
   cilSpeedometer,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
@@ -112,6 +113,26 @@ const getNavigation = (permissions = []) => {
           component: CNavItem,
           name: 'Ajouter une dépense',
           to: '/depenses/create',
+        },
+      ]
+    }] : []),
+
+    // acomptes
+    ...(checkPermission("acompte.view") || checkPermission("acompte.create") ? [{
+      component: CNavGroup,
+      name: 'Acomptes',
+      to: "/acomptes",
+      icon: <CIcon icon={cilMoney} customClassName="nav-icon" />,
+      items: [
+        {
+          component: CNavItem,
+          name: 'Liste des acomptes',
+          to: '/acomptes/list',
+        },
+        {
+          component: CNavItem,
+          name: 'Ajouter un acompte',
+          to: '/acomptes/create',
         },
       ]
     }] : []),

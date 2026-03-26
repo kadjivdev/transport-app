@@ -45,6 +45,12 @@ const Reglement = {
   Create: React.lazy(() => import('./views/reglements/Create')),
 }
 
+// acomptes
+const Acompte = {
+  List: React.lazy(() => import('./views/acomptes/List')),
+  Create: React.lazy(() => import('./views/acomptes/Create')),
+}
+
 // depenses
 const Depense = {
   List: React.lazy(() => import('./views/depenses/List')),
@@ -78,6 +84,9 @@ const routes = [
 
   { path: '/reglements/list', name: 'Liste des reglements', element: Reglement.List },
   { path: '/reglements/create', name: 'Ajouter un reglement', element: Reglement.Create },
+
+  { path: '/acomptes/list', name: 'Liste des acompte', element: Acompte.List },
+  { path: '/acomptes/create', name: 'Ajouter un acompte', element: Acompte.Create },
 
   { path: '/depenses/list', name: 'Liste des depenses', element: Depense.List },
   { path: '/depenses/create', name: 'Ajouter un depenses', element: Depense.Create },

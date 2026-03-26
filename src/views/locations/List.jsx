@@ -528,7 +528,7 @@ const List = () => {
                                     </div>
                                     {
                                         currentLocation.type?.id === 3 &&
-                                        <div className="">
+                                        <div className="mx-2">
                                             <input type="number"
                                                 className="form-control"
                                                 readOnly={true}

@@ -58,6 +58,14 @@ const myRoutes = {
   validateDepense: (id) => (`depenses/validate/${id}`),
   deleteDepense: (id) => (`depenses/${id}`),
 
+  // acomptes's routes
+  allAcompte: `acomptes`,
+  createAcompte: `acomptes`,
+  retrieveAcompte: (id) => (`acomptes/${id}`),
+  updateAcompte: (id) => (`acomptes/${id}`),
+  validateAcompte: (id) => (`acomptes/validate/${id}`),
+  deleteAcompte: (id) => (`acomptes/${id}`),
+
   /**
    * Les routes de settings
    */
