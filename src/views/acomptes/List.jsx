@@ -315,7 +315,7 @@ const List = () => {
         return sum + value;
     }, 0);
 
-    const totalTormattedAmount = totalAmount.toLocaleString('fr-FR', {
+    const totalFormattedAmount = totalAmount.toLocaleString('fr-FR', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
@@ -349,7 +349,7 @@ const List = () => {
                 </div>
 
                 {/* totaux */}
-                <h5 className="">Montant total : <span className="badge bg-light rounded border shadow text-success">{totalTormattedAmount} FCFA</span></h5>
+                <h5 className="">Montant total : <span className="badge bg-light rounded border shadow text-success">{totalFormattedAmount} FCFA</span></h5>
                 <table className="table table-striped bg-transparent" id="myTable">
                     <thead>
                         <tr>

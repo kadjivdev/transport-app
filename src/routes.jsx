@@ -57,6 +57,18 @@ const Depense = {
   Create: React.lazy(() => import('./views/depenses/Create')),
 }
 
+// backs
+const Back = {
+  List: React.lazy(() => import('./views/backs/List')),
+  Create: React.lazy(() => import('./views/backs/Create')),
+}
+
+// tvas
+const Tva = {
+  List: React.lazy(() => import('./views/tvas/List')),
+  Create: React.lazy(() => import('./views/tvas/Create')),
+}
+
 const routes = [
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
 
@@ -87,6 +99,12 @@ const routes = [
 
   { path: '/acomptes/list', name: 'Liste des acompte', element: Acompte.List },
   { path: '/acomptes/create', name: 'Ajouter un acompte', element: Acompte.Create },
+
+  { path: '/backs/list', name: 'Liste des retour de fond', element: Back.List },
+  { path: '/backs/create', name: 'Ajouter un retour de fond', element: Back.Create },
+
+  { path: '/tvas/list', name: 'Liste des tva', element: Tva.List },
+  { path: '/tvas/create', name: 'Ajouter un tva', element: Tva.Create },
 
   { path: '/depenses/list', name: 'Liste des depenses', element: Depense.List },
   { path: '/depenses/create', name: 'Ajouter un depenses', element: Depense.Create },

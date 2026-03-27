@@ -6,6 +6,7 @@ import {
   cibMyspace,
   cibProxmox,
   cibR,
+  cibRiot,
   cibSamsungPay,
   cibTrainerroad,
   cilAlignCenter,
@@ -133,6 +134,46 @@ const getNavigation = (permissions = []) => {
           component: CNavItem,
           name: 'Ajouter un acompte',
           to: '/acomptes/create',
+        },
+      ]
+    }] : []),
+
+    // retour de fond
+    ...(checkPermission("back.view") || checkPermission("back.create") ? [{
+      component: CNavGroup,
+      name: 'Retour de fond',
+      to: "/back",
+      icon: <CIcon icon={cibRiot} customClassName="nav-icon" />,
+      items: [
+        {
+          component: CNavItem,
+          name: 'Liste des retour de fonds',
+          to: '/backs/list',
+        },
+        {
+          component: CNavItem,
+          name: 'Ajouter un retour de fond',
+          to: '/backs/create',
+        },
+      ]
+    }] : []),
+
+    // tva
+    ...(checkPermission("tva.view") || checkPermission("tva.create") ? [{
+      component: CNavGroup,
+      name: 'Taxe sur valeur ajoutée',
+      to: "/tva",
+      icon: <CIcon icon={cibTrainerroad} customClassName="nav-icon" />,
+      items: [
+        {
+          component: CNavItem,
+          name: 'Liste des tvas',
+          to: '/tvas/list',
+        },
+        {
+          component: CNavItem,
+          name: 'Ajouter un tva',
+          to: '/tvas/create',
         },
       ]
     }] : []),

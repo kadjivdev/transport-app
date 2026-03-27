@@ -66,6 +66,22 @@ const myRoutes = {
   validateAcompte: (id) => (`acomptes/validate/${id}`),
   deleteAcompte: (id) => (`acomptes/${id}`),
 
+  // back's routes
+  allBack: `backs`,
+  createBack: `backs`,
+  retrieveBack: (id) => (`backs/${id}`),
+  updateBack: (id) => (`backs/${id}`),
+  validateBack: (id) => (`backs/validate/${id}`),
+  deleteBack: (id) => (`backs/${id}`),
+
+  // tva's routes
+  allTva: `tvas`,
+  createTva: `tvas`,
+  retrieveTva: (id) => (`tvas/${id}`),
+  updateTva: (id) => (`tvas/${id}`),
+  validateTva: (id) => (`tvas/validate/${id}`),
+  deleteTva: (id) => (`tvas/${id}`),
+
   /**
    * Les routes de settings
    */

@@ -2,14 +2,13 @@ import { cibAddthis, cilCheckCircle, cilCloudDownload, cilDialpad, cilPencil, ci
 import { CModal } from '@coreui/react'
 
 import CIcon from "@coreui/icons-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Card from "src/components/Card";
 import LinkButton from "src/components/LinkButton";
 import useDataTable from "src/hooks/useDataTable";
 import axiosInstance from "../../api/axiosInstance";
 import apiRoutes from "../../api/routes"
 import { useApp } from "../../AppContext";
-import { Modal } from "../../components/Modal";
 import InputLabel from "src/components/forms/InputLabel";
 import { useNavigate } from "react-router-dom";
 import ConfirmAlert from "../../hooks/ConfirmAlert";
@@ -31,147 +30,110 @@ const List = () => {
 
     const [modalUpdateVisible, setModalUpdateVisible] = useState(false);
 
-    const [locations, setLocations] = useState([]);
-    const [depenses, setDepenses] = useState([]);
-    const [camions, setCamions] = useState([]);
-    const [currentDepense, setCurrentDepense] = useState({
-        location_id: "",
-        montant: "",
-        preuve: "",
-        commentaire: "",
-    });
+    const [clients, setClients] = useState([]);
+    const [backs, setBacks] = useState([]);
+    const [currentBack, setCurrentBack] = useState({});
     const [searchId, setSearchId] = useState(null);
 
     // 
-    const [dataDepense, setDataDepense] = useState({
-        location_id: "",
+    const [dataBack, setDataBack] = useState({
+        client_id: "",
         montant: "",
         preuve: "",
         commentaire: "",
     });
-
     const [errors, setErrors] = useState({
-        location_id: "",
+        client_id: "",
         montant: "",
         preuve: "",
         commentaire: "",
     });
 
-    // les locations
-    const getCamions = useCallback(async function () {
+    // les clients
+    const getClients = useCallback(async function () {
         try {
-            const response = await axiosInstance.get(apiRoutes.allCamion)
+            const response = await axiosInstance.get(apiRoutes.allClient)
 
-            setCamions(response?.data);
-
-            console.log("Les Camions :", response.data)
+            console.log("Les clients à l'initiation : ", response.data)
+            setClients(response.data);
 
             setStatus('success');
             setStatusCode(response.status);
-            setMessage('Liste des camions chargés avec succès!');
+            setMessage('Liste des clients avec succès!');
 
             return response.data;
         } catch (error) {
-            setStatus('error');
-            setStatusCode(error.response?.status);
-            setMessage('Erreure lors du chargement des locations!!');
-            return [];
+            if (error.response?.status != 204) {
+                setStatus('error');
+                setStatusCode(error.response?.status);
+                setMessage('Erreure lors du chargement des clients!!');
+                return [];
+            }
         }
     }, [])
 
-    // les locations
-    const getLocations = useCallback(async function () {
+    // les backs
+    const getBacks = useCallback(async function () {
         try {
-            const response = await axiosInstance.get(apiRoutes.allLocation)
+            const response = await axiosInstance.get(apiRoutes.allBack)
 
-            // juste les depense déjà validés & ayant du reste à livrer
-            let data = response?.data?.filter((location) => location.validatedAt) || []
-            setLocations(data);
+            setBacks(response?.data || []);
 
-            console.log("Les locations :", data)
+            console.log("Les backs :", response?.data)
 
             setStatus('success');
             setStatusCode(response.status);
-            setMessage('Liste des locations chargées avec succès!');
+            setMessage('Liste des retour de fond chargés avec succès!');
 
             return response.data;
         } catch (error) {
             setStatus('error');
             setStatusCode(error.response?.status);
-            setMessage('Erreure lors du chargement des locations!!');
-            return [];
-        }
-    }, [])
-
-    // les depenses
-    const getDepenses = useCallback(async function () {
-        try {
-            const response = await axiosInstance.get(apiRoutes.allDepense)
-
-            setDepenses(response?.data || []);
-
-            console.log("Les depenses :", response?.data)
-
-            setStatus('success');
-            setStatusCode(response.status);
-            setMessage('Liste des depenses chargées avec succès!');
-
-            return response.data;
-        } catch (error) {
-            setStatus('error');
-            setStatusCode(error.response?.status);
-            setMessage('Erreure lors du chargement des depenses!!');
+            setMessage('Erreure lors du chargement des retour de fond!!');
             return [];
         }
     }, [])
 
     // initialisation des données
     useEffect(function () {
-        // chargements des locations
-        getLocations();
-        // chargement des depenses
-        getDepenses();
-        // chargement de scamions
-        getCamions()
+        // chargements des backs
+        getClients();
+        // chargement des backs
+        getBacks();
     }, [])
 
     // Call DataTable
-    useDataTable('myTable', depenses);
+    useDataTable('myTable', backs);
 
     useEffect(() => (
-        console.log("Data depense :", dataDepense)
-    ), [dataDepense]);
+        console.log("Data back :", dataBack)
+    ), [dataBack]);
 
-    useEffect(() => {
-        console.log("Current depense :", dataDepense)
-    }, [dataDepense]);
-
-    // modifier un depense
-    const updateDepense = (e, depense) => {
+    // modifier un back
+    const updateBack = (e, back) => {
         e.preventDefault();
 
-        console.log("updating depense :", depense)
+        setCurrentBack(back)
 
-        setCurrentDepense({ ...depense, montant: depense._montant, commentaire: depense.commentaire })
+        console.log("The back : ", back)
 
-        setDataDepense({
-            ...dataDepense,
-            location_id: depense.location?.id,
-            montant: depense._montant,
-            commentaire: depense.commentaire
+        setDataBack({
+            client_id: back.client?.id,
+            montant: back._montant,
+            preuve: null,
+            commentaire: back.commentaire,
         })
 
-        setModalTitle(`Modifier la depense ## ${depense.reference} ##`);
+        setModalTitle(`Modifier le retour de fond ## ${back.reference} ##`);
         setModalUpdateVisible(true);
-
-        console.log(`Depense Current : ${JSON.stringify(currentDepense)}`)
     }
 
     // submit form
     const handleUpdateSubmit = async (e) => {
         e.preventDefault();
 
-        console.log('Données de la depense à modifier :', dataDepense);
+        console.log('Données du retour de fond à modifier :', dataBack);
+        console.log("Current accompte :", currentBack)
 
         Swal.fire({
             title: "Opération en cours...",
@@ -186,65 +148,69 @@ const List = () => {
                 Swal.close();
             }
         });
+
         setStatus(null);
 
         try {
 
-            const formData = new FormData();
-            formData.append("location_id", dataDepense.location_id);
-            formData.append("montant", dataDepense.montant);
-            formData.append("commentaire", dataDepense.commentaire);
+            const formData = new FormData()
 
-            // Important : n'envoyer le fichier QUE si c'est un vrai File
-            if (dataDepense.preuve instanceof File) {
-                formData.append("preuve", dataDepense.preuve);
+            console.log("Data Back in handleUpdateSubmit :", dataBack)
+
+            formData.append("client_id", dataBack.client_id)
+            formData.append("montant", dataBack.montant)
+            formData.append("commentaire", dataBack.commentaire)
+
+            if (dataBack.preuve) {
+                formData.append("preuve", dataBack.preuve)
             }
 
-            formData.append('_method', 'PATCH');
-
-            const response = await axiosInstance.post(apiRoutes.updateDepense(currentDepense?.id), formData);
+            formData.append("_method", "PATCH");
+            const response = await axiosInstance.post(apiRoutes.updateBack(currentBack?.id), formData);
 
             setErrors({
-                location_id: "",
+                client_id: "",
                 montant: "",
                 preuve: "",
                 commentaire: "",
             });
 
             setStatus('success');
-            setMessage(`La depense a été modifiée avec succès!`);
+            setMessage(`Le retour de fond a été modifié avec succès!`);
             setStatusCode(response?.status);
 
-            await getDepenses()
+            await getBacks();
 
             setModalUpdateVisible(false);
-            return navigate("/depenses/list");
+
+            return navigate("/backs/list");
         } catch (error) {
-            console.log('Erreur lors de la modification de la depense :', error);
+            console.log('Erreur lors de la modification du back :', error);
             let errMessage = '';
 
             if (error.response?.status === 422) {
                 // Erreurs de validation
                 errMessage = `Des erreurs de validation sont survenues. Veuillez vérifier les champs `;
+                setErrors(error.response?.data?.errors);
             } else {
                 errMessage = `Une erreur inattendue est survenue. Veuillez réessayer. (${error.response?.data?.error || 'Erreure survenue'})`;
             }
 
-            console.log(errMessage)
             setLoading(false);
             setStatus('error');
             setMessage(errMessage);
             setStatusCode(error.response?.status);
-            setErrors(error.response?.data?.errors);
+
+            // setModalUpdateVisible(false);
         }
     }
 
-    // valider une depense
-    const validate = async (e, depense) => {
+    // valider un back
+    const validate = async (e, back) => {
         e.preventDefault()
 
         ConfirmAlert({
-            title: `Voulez-vous vraiment valider la depense ${depense.reference} ?`,
+            title: `Voulez-vous vraiment valider le retour de fond ${back.reference} ?`,
             confirmButtonText: "Valider",
             denyButtonText: "Annuler",
             next: async () => {
@@ -264,24 +230,24 @@ const List = () => {
                     });
 
                     setStatus(null);
-                    const response = await axiosInstance.post(apiRoutes.validateDepense(depense.id));
+                    const response = await axiosInstance.post(apiRoutes.validateBack(back.id));
 
-                    console.log('Depense validée avec succès !');
+                    console.log('back validé avec succès !');
 
-                    await getDepenses(); // actualiser la liste des depenses
+                    await getBacks(); // actualiser la liste des Backs
 
                     setModalVisible(false);
                     setStatus('success');
-                    setMessage(`La depense ${depense.reference} a été validée avec succès!`);
+                    setMessage(`Le retour de fond ${back.reference} a été validé avec succès!`);
                     setStatusCode(response.status);
 
-                    return navigate("/depenses/list");
+                    return navigate("/backs/list");
                 } catch (error) {
                     setLoading(false);
                     setStatus('error');
                     setStatusCode(error.response?.status);
 
-                    setMessage(`Erreure lors de la validation de la depense ${depense.reference} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
+                    setMessage(`Erreure lors de la validation du retour de fond ${back.reference} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
                     console.log(`The error response : ${JSON.stringify(error.response)}`)
                 }
             }
@@ -289,13 +255,13 @@ const List = () => {
     }
 
     /**
-     * Deleting a depense
+     * Deleting an back
      */
-    const deleteDepense = async (e, depense) => {
+    const deleteBack = async (e, back) => {
         e.preventDefault();
 
         ConfirmAlert({
-            title: `Voulez-vous vraiment supprimer la depense ${depense.reference} ?`,
+            title: `Voulez-vous vraiment supprimer le retour de fond ${back.reference} ?`,
             confirmButtonText: "Supprimer",
             denyButtonText: "Annuler",
             next: async () => {
@@ -315,24 +281,24 @@ const List = () => {
                     });
 
                     setStatus(null);
-                    const response = await axiosInstance.delete(apiRoutes.deleteDepense(depense?.id));
+                    const response = await axiosInstance.delete(apiRoutes.deleteBack(back?.id));
 
-                    console.log('Depense supprimée avec succès !');
+                    console.log('back supprimé avec succès !');
 
-                    await getDepenses(); // actualiser la liste des depenses
+                    await getBacks(); // actualiser la liste des Backs
 
                     setModalVisible(false);
                     setStatus('success');
-                    setMessage(`La depense ${depense.reference} a été supprimée avec succès!`);
+                    setMessage(`Le retour de fond ${back.reference} a été supprimé avec succès!`);
                     setStatusCode(response.status);
 
-                    return navigate("/depenses/list");
+                    return navigate("/backs/list");
                 } catch (error) {
                     setLoading(false);
                     setStatus('error');
                     setStatusCode(error.response?.status);
 
-                    setMessage(`Erreure lors de la suppression de la depense ${depense.reference} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
+                    setMessage(`Erreure lors de la suppression du retour de fond ${back.reference} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
                     console.log(`The error response : ${JSON.stringify(error.response)}`)
                 }
             }
@@ -340,11 +306,11 @@ const List = () => {
     };
 
     /**
-    * Filtre via client
-    */
-    const filteredDepenses = searchId ? depenses.filter((depense) => depense.camion?.id == searchId) : depenses
+     * Filtre via client
+     */
+    const filteredBacks = searchId ? backs.filter((back) => back.client?.id == searchId) : backs
 
-    const totalAmount = filteredDepenses.reduce((sum, item) => {
+    const totalAmount = filteredBacks.reduce((sum, item) => {
         const value = Number(item.montant.replace(/\s/g, '').replace(',', '.'));
         return sum + value;
     }, 0);
@@ -357,22 +323,24 @@ const List = () => {
     return (
         <>
             <Card>
-                {checkPermission("depense.create") &&
-                    <LinkButton route={"/depenses/create"}>
-                        <CIcon className='' icon={cibAddthis} /> Ajouter une depense
+                {checkPermission("back.create") &&
+                    <LinkButton route={"/backs/create"}>
+                        <CIcon className='' icon={cibAddthis} /> Ajouter un retour de fond
                     </LinkButton>
                 }
 
-                {/* filtre via camion */}
+                {/* filtre via client */}
                 <div className="row d-flex justify-content-center mb-3">
                     <div className="col-md-6">
                         <Select
-                            placeholder="Rechercher un camion ..."
+                            placeholder="Rechercher un client ..."
+                            name="client_id"
+                            id="client_id"
                             required
                             className="form-control mt-1 block w-full"
-                            options={camions?.map((camion) => ({
-                                value: camion.id,
-                                label: `${camion.libelle}`,
+                            options={clients?.map((client) => ({
+                                value: client.id,
+                                label: `${client.nom} ${client.prenom}`,
                             }))
                             }
                             onChange={(option) => setSearchId(option.value)} // update state with id
@@ -382,15 +350,12 @@ const List = () => {
 
                 {/* totaux */}
                 <h5 className="">Montant total : <span className="badge bg-light rounded border shadow text-success">{totalFormattedAmount} FCFA</span></h5>
-
                 <table className="table table-striped bg-transparent" id="myTable">
                     <thead>
                         <tr>
                             <th scope="col">#</th>
-                            <th scope="col">Action</th>
                             <th scope="col">Reference</th>
-                            <th scope="col">Location</th>
-                            <th scope="col">Camion</th>
+                            <th scope="col">Client</th>
                             <th scope="col">Montant</th>
                             <th scope="col">Preuve</th>
                             <th scope="col">Inserée le</th>
@@ -398,47 +363,47 @@ const List = () => {
                             <th scope="col">Validée le</th>
                             <th scope="col">Validée par</th>
                             <th scope="col">Commentaire</th>
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {
-                            filteredDepenses.length > 0 ? filteredDepenses.map((depense, key) => (
-                                <tr key={key} id={`row-${depense.id}`}>
+                            filteredBacks.length > 0 ? filteredBacks.map((back, key) => (
+                                <tr key={key} id={`row-${back.id}`}>
                                     <th scope="row">{key + 1}</th>
+                                    <td><span className="badge bg-light text-dark rounded border shadow">{back.reference}</span></td>
+                                    <td>{`${back.client?.nom} ${back.client?.prenom}`}</td>
+                                    <td><span className="badge bg-light border shadow text-success" readOnly>{back.montant} </span></td>
                                     <td>
-                                        {!depense.validatedAt ?
+                                        {back.preuve ? <a href={back.preuve} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}
+                                    </td>
+                                    <td>{back.createdAt || '---'}</td>
+                                    <td>{back.createdBy?.name || '---'}</td>
+                                    <td>{back.validatedAt || '---'}</td>
+                                    <td>{back.validatedBy?.name || '---'}</td>
+                                    <td>
+                                        <textarea className="form-control" rows="1" placeholder={back.commentaire || '---'}></textarea>
+                                    </td>
+                                    <td>
+                                        {!back.validatedAt ?
                                             <div className="dropdown">
                                                 <a className="btn btn-dark w-100 dropdown-toggle btn-sm" role="button" data-bs-toggle="dropdown">
                                                     <CIcon className='me-2' icon={cilDialpad} /> Gérer
                                                 </a>
                                                 <ul className="dropdown-menu w-100">
-                                                    {checkPermission("depense.edit") && !depense.validatedAt && <li><a className="dropdown-item text-warning" onClick={(e) => updateDepense(e, depense)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
-                                                    {checkPermission("depense.validate") && !depense.validatedAt && <li><a className="dropdown-item text-success" onClick={(e) => validate(e, depense)} ><CIcon className='me-2' icon={cilCheckCircle} /> Valider</a></li>}
-                                                    {checkPermission("depense.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteDepense(e, depense)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
+                                                    {checkPermission("back.edit") && !back.validatedAt && <li><a className="dropdown-item text-warning" onClick={(e) => updateBack(e, back)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
+                                                    {checkPermission("back.validate") && !back.validatedAt && <li><a className="dropdown-item text-success" onClick={(e) => validate(e, back)} ><CIcon className='me-2' icon={cilCheckCircle} /> Valider</a></li>}
+                                                    {checkPermission("back.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteBack(e, back)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
                                                 </ul>
                                             </div> : '---'}
                                     </td>
-                                    <td><span className="badge bg-light text-dark border rounded shadow"> {depense.reference}</span></td>
-                                    <td><span className="badge bg-light text-dark border rounded shadow">{`${depense.location?.reference}`}</span></td>
-                                    <td><span className="badge bg-light text-dark border rounded shadow">{`${depense.camion?.libelle}`}</span></td>
-                                    <td><span className="badge bg-light text-dark border rounded shadow text-success" readOnly>{depense.montant} </span></td>
-                                    <td>
-                                        {depense.preuve ? <a href={depense.preuve} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}
-                                    </td>
-                                    <td>{depense.createdAt || '---'}</td>
-                                    <td>{depense.createdBy?.name || '---'}</td>
-                                    <td>{depense.validatedAt || '---'}</td>
-                                    <td>{depense.validatedBy?.name || '---'}</td>
-                                    <td>
-                                        <textarea className="form-control" rows="1" placeholder={depense.commentaire || '---'}></textarea>
-                                    </td>
                                 </tr>
-                            )) : <tr><td colSpan="11" className="text-center">Aucune depense n'a été trouvée</td></tr>
+                            )) : <tr><td colSpan="11" className="text-center">Aucun retour de fond n'a été trouvé</td></tr>
                         }
                     </tbody>
                 </table>
 
-                {/* modification d'une depense */}
+                {/* modification d'un back */}
                 <CModal
                     visible={modalUpdateVisible}
                     onClose={() => setModalUpdateVisible(false)}
@@ -448,53 +413,52 @@ const List = () => {
                         <p>{modalTitle}</p>
                         <div className="mb-3">
                             <InputLabel
-                                htmlFor="location"
-                                text="La location"
+                                htmlFor="client_id"
+                                text="Le client"
                                 required={true} />
                             <Select
-                                placeholder="Rechercher une location ..."
-                                name="location_id"
-                                id="location_id"
+                                placeholder="Rechercher un client ..."
+                                name="client_id"
+                                id="client_id"
                                 required
                                 className="form-control mt-1 block w-full"
-                                options={locations?.map((location) => ({
-                                    value: location.id,
-                                    label: `${location.reference}`,
+                                options={clients?.map((client) => ({
+                                    value: client.id,
+                                    label: `${client.nom} ${client.prenom}`,
                                 }))}
-                                value={locations
-                                    .map((location) => ({
-                                        value: location.id,
-                                        label: `${location.reference}`,
+                                value={clients
+                                    .map((client) => ({
+                                        value: client.id,
+                                        label: `${client.nom} ${client.prenom}`,
                                     }))
-                                    .find((option) => option.value === dataDepense.location_id)} // set selected option
-                                onChange={(option) => setDataDepense({ ...dataDepense, location_id: option.value })} // update state with id
+                                    .find((option) => option.value === dataBack.client_id)} // set selected option
+                                onChange={(option) => setDataBack({ ...dataBack, client_id: option.value })} // update state with id
                             />
-                            {errors.location_id && <span className="text-danger">{errors.location_id}</span>}
+                            {errors.client_id && <span className="text-danger">{errors.client_id}</span>}
                         </div>
 
                         <div className="mb-3">
                             <InputLabel
                                 htmlFor="montant"
-                                text="Montant du depense"
+                                text="Montant du retour de fond"
                                 required={true} />
                             <input type="number" name="montant"
                                 className="form-control" id="montant"
-                                value={dataDepense.montant}
+                                value={dataBack.montant}
                                 placeholder="Ex: 50.000"
                                 required
-                                onChange={(e) => setDataDepense({ ...dataDepense, montant: e.target.value })}
+                                onChange={(e) => setDataBack({ ...dataBack, montant: e.target.value })}
                             />
                             {errors.montant && <span className="text-danger">{errors.montant}</span>}
                         </div>
                         <div className="mb-3">
                             <InputLabel
                                 htmlFor="preuve"
-                                text="La preuve du depense"
+                                text="La preuve du retour de fond"
                                 required={false} />
                             <input type="file" name="preuve"
-                                className="form-control" id="contrat"
-                                // required
-                                onChange={(e) => setDataDepense({ ...dataDepense, preuve: e.target.files[0] })} />
+                                className="form-control" id="preuve"
+                                onChange={(e) => setDataBack({ ...dataBack, preuve: e.target.files[0] })} />
                             {errors.preuve && <span className="text-danger">{errors.preuve}</span>}
                         </div>
 
@@ -505,9 +469,9 @@ const List = () => {
                                 required={false} />
                             <textarea name="commentaire" className="form-control"
                                 rows="2"
-                                value={dataDepense.commentaire}
+                                value={dataBack.commentaire}
                                 placeholder="Laissez un commentaire ...."
-                                onChange={(e) => setDataDepense({ ...dataDepense, commentaire: e.target.value })}></textarea>
+                                onChange={(e) => setDataBack({ ...dataBack, commentaire: e.target.value })}></textarea>
                             {errors.commentaire && <span className="text-danger">{errors.commentaire}</span>}
                         </div>
 

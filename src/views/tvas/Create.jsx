@@ -1,4 +1,5 @@
-import { cibAddthis, cilCut, cilList, cilSend } from "@coreui/icons";
+import { cilList, cilSend } from "@coreui/icons";
+
 import CIcon from "@coreui/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Card from "src/components/Card";
@@ -15,47 +16,53 @@ import Swal from "sweetalert2";
 const Create = () => {
     const { setStatus, setLoading, setMessage, setStatusCode } = useApp();
 
-    const [dataDepense, setDataDepense] = useState({
+    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
+    // verification de permission
+    const checkPermission = (name) => {
+        return authUser?.permissions?.some(per => per.name == name);
+    }
+
+    const [dataTva, setDataTva] = useState({
         location_id: "",
-        camion_id: "",
-        montant: '',
+        montant: "",
         preuve: "",
         commentaire: "",
     });
     const [errors, setErrors] = useState({
         location_id: "",
-        camion_id: "",
         montant: "",
         preuve: "",
         commentaire: "",
     });
 
     const [locations, setLocations] = useState([]);
-    const [camions, setCamions] = useState([]);
-    const [showClient, setShowClient] = useState(false)
-    const currentLocation = useRef([])
+
+    useEffect(() => {
+        console.log("Les locations chargés :", locations)
+    }, [locations])
 
     // les locations
     const getLocations = useCallback(async function () {
         try {
             const response = await axiosInstance.get(apiRoutes.allLocation)
 
-            // juste les locations déjà validés & ayant du reste à livrer
-            let data = response?.data?.filter((location) => location.validatedAt) || []
-            setLocations(data);
+            let data = response.data?.filter(location => location.validatedAt != null)
 
-            console.log("Les locations :", data)
+            console.log("Les locations à l'initiation : ", data)
+            setLocations(data);
 
             setStatus('success');
             setStatusCode(response.status);
-            setMessage('Liste des locations chargées avec succès!');
+            setMessage('Liste des locations avec succès!');
 
             return response.data;
         } catch (error) {
-            setStatus('error');
-            setStatusCode(error.response?.status);
-            setMessage('Erreure lors du chargement des locations!!');
-            return [];
+            if (error.response?.status != 204) {
+                setStatus('error');
+                setStatusCode(error.response?.status);
+                setMessage('Erreure lors du chargement des locations!!');
+                return [];
+            }
         }
     }, [])
 
@@ -67,50 +74,14 @@ const Create = () => {
     const navigate = useNavigate();
 
     useEffect(() => (
-        console.log("Data depense :", dataDepense)
-    ), [dataDepense]);
-
-    const authUser = JSON.parse(localStorage.getItem("user") || "[]");
-    // verification de permission
-    const checkPermission = (name) => {
-        return authUser?.permissions?.some(per => per.name == name);
-    }
-
-    // amount hundling...
-    const handleMontantChange = (value) => {
-        setDataDepense((prev) => ({
-            ...prev,
-            montant: value
-        }));
-    }
-
-    const handleLocationChange = (value) => {
-        let location = locations.find(loca => loca.id == value);
-        if (!location) return;
-
-        console.log("Location choosed :", location);
-
-        currentLocation.current = location
-
-        setCamions(location.details?.map((detail) => ({
-            id: detail.camion.id,
-            libelle: detail.camion.libelle,
-            immatriculation: detail.camion.immatriculation,
-        })))
-
-        setShowClient(true)
-
-        setDataDepense((prev) => ({
-            ...prev,
-            location_id: value, montant: location.client?.solde
-        }));
-    }
+        console.log("Data Tva :", dataTva)
+    ), [dataTva]);
 
     // submit form
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log('Données de la depense à créer :', dataDepense);
+        console.log('Données du retour de fond à créer :', dataTva);
 
         Swal.fire({
             title: "Opération en cours...",
@@ -129,12 +100,12 @@ const Create = () => {
         setStatus(null);
 
         try {
-            const response = await axiosInstance.post(apiRoutes.createDepense, dataDepense, {
+            const response = await axiosInstance.post(apiRoutes.createTva, dataTva, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
             });
-            console.log('Réponse du serveur après création de la depense :', response.data);
+            console.log('Réponse du serveur après création de la ocation :', response.data);
 
             setErrors({
                 location_id: "",
@@ -144,12 +115,12 @@ const Create = () => {
             });
 
             setStatus('success');
-            setMessage(`La depense a été crée avec succès!`);
+            setMessage(`Le retour de fond a été crée avec succès!`);
             setStatusCode(200);
 
-            return navigate("/depenses/list");
+            return navigate("/tvas/list");
         } catch (error) {
-            console.log('Erreur lors de la création de la depense :', error);
+            console.log('Erreur lors de la création du retour de fond :', error);
             let errMessage = '';
 
             if (error.response?.status === 422) {
@@ -173,9 +144,9 @@ const Create = () => {
             <div className="row">
                 <div className="col-md-2"></div>
                 <div className="col-md-8">
-                    {checkPermission("depense.list") &&
-                        <LinkButton route={"/depenses/list"}>
-                            <CIcon className='' icon={cilList} /> Liste des dépenses
+                    {checkPermission("tva.list") &&
+                        <LinkButton route={"/tvas/list"}>
+                            <CIcon className='' icon={cilList} /> Liste des retour de fonds
                         </LinkButton>
                     }
 
@@ -184,7 +155,7 @@ const Create = () => {
                             <div className="mb-3">
                                 <InputLabel
                                     htmlFor="location"
-                                    text="La location"
+                                    text="Le location"
                                     required={true} />
                                 <Select
                                     placeholder="Rechercher une location ..."
@@ -201,73 +172,35 @@ const Create = () => {
                                             value: location.id,
                                             label: `${location.reference}`,
                                         }))
-                                        .find((option) => option.value === dataDepense.location_id)} // set selected option
-                                    onChange={(option) => handleLocationChange(option.value)} // update state with id
+                                        .find((option) => option.value === dataTva.location_id)} // set selected option
+                                    onChange={(option) => setDataTva({ ...dataTva, location_id: option.value })} // update state with id
                                 />
                                 {errors.location_id && <span className="text-danger">{errors.location_id}</span>}
                             </div>
 
-                            {
-                                showClient &&
-                                (
-                                    <div className="">
-                                        <div className="mb-3">
-                                            <InputLabel
-                                                htmlFor="camion"
-                                                text="Précisez le camion"
-                                                required={true} />
-                                            <Select
-                                                placeholder="Rechercher un camion ..."
-                                                name="camions"
-                                                id="camions"
-                                                required
-                                                className="form-control mt-1 block w-full"
-                                                options={camions.map((camion) => ({
-                                                    value: camion.id,
-                                                    label: `${camion.libelle}`,
-                                                }))}
-                                                onChange={(option) => setDataDepense({ ...dataDepense, camion_id: option.value })} // update state with id
-                                            />
-                                            {errors.camions && <span className="text-danger">{errors.camions}</span>}
-                                        </div>
-
-                                        <div className="mb-3">
-                                            <InputLabel
-                                                htmlFor="montant"
-                                                text="Le client concerné.e" />
-                                            <input type="text"
-                                                className="form-control"
-                                                value={`${currentLocation.current?.client?.nom} - ${currentLocation.current?.client?.prenom}`}
-                                                readOnly={true}
-                                            />
-                                            {errors.montant && <span className="text-danger">{errors.montant}</span>}
-                                        </div>
-                                    </div>)
-                            }
-
                             <div className="mb-3">
                                 <InputLabel
                                     htmlFor="montant"
-                                    text="Montant de la dépense"
+                                    text="Montant"
                                     required={true} />
                                 <input type="number" name="montant"
                                     className="form-control" id="montant"
-                                    value={dataDepense.montant}
+                                    value={dataTva.montant}
                                     placeholder="Ex: 50.000"
                                     required
-                                    onChange={(e) => handleMontantChange(e.target.value)}
+                                    onChange={(e) => setDataTva({ ...dataTva, montant: e.target.value })}
                                 />
                                 {errors.montant && <span className="text-danger">{errors.montant}</span>}
                             </div>
                             <div className="mb-3">
                                 <InputLabel
                                     htmlFor="preuve"
-                                    text="La preuve de la dépense"
+                                    text="La preuve du tva"
                                     required={true} />
                                 <input type="file" name="preuve"
                                     className="form-control" id="contrat"
                                     required
-                                    onChange={(e) => setDataDepense({ ...dataDepense, preuve: e.target.files[0] })} />
+                                    onChange={(e) => setDataTva({ ...dataTva, preuve: e.target.files[0] })} />
                                 {errors.preuve && <span className="text-danger">{errors.preuve}</span>}
                             </div>
 
@@ -279,11 +212,11 @@ const Create = () => {
                                 <textarea name="commentaire" className="form-control"
                                     rows="2"
                                     placeholder="Laissez un commentaire ...."
-                                    onChange={(e) => setDataDepense({ ...dataDepense, commentaire: e.target.value })}></textarea>
+                                    onChange={(e) => setDataTva({ ...dataTva, commentaire: e.target.value })}></textarea>
                                 {errors.commentaire && <span className="text-danger">{errors.commentaire}</span>}
                             </div>
 
-                            {checkPermission("depense.create") &&
+                            {checkPermission("tva.create") &&
                                 <div className="mt-3">
                                     <CustomButton newClass={'_btn-dark'} type="submit"> <CIcon icon={cilSend} /> Enregistrer </CustomButton>
                                 </div>

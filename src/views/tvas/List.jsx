@@ -2,14 +2,13 @@ import { cibAddthis, cilCheckCircle, cilCloudDownload, cilDialpad, cilPencil, ci
 import { CModal } from '@coreui/react'
 
 import CIcon from "@coreui/icons-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Card from "src/components/Card";
 import LinkButton from "src/components/LinkButton";
 import useDataTable from "src/hooks/useDataTable";
 import axiosInstance from "../../api/axiosInstance";
 import apiRoutes from "../../api/routes"
 import { useApp } from "../../AppContext";
-import { Modal } from "../../components/Modal";
 import InputLabel from "src/components/forms/InputLabel";
 import { useNavigate } from "react-router-dom";
 import ConfirmAlert from "../../hooks/ConfirmAlert";
@@ -32,146 +31,109 @@ const List = () => {
     const [modalUpdateVisible, setModalUpdateVisible] = useState(false);
 
     const [locations, setLocations] = useState([]);
-    const [depenses, setDepenses] = useState([]);
-    const [camions, setCamions] = useState([]);
-    const [currentDepense, setCurrentDepense] = useState({
-        location_id: "",
-        montant: "",
-        preuve: "",
-        commentaire: "",
-    });
+    const [tvas, setTvas] = useState([]);
+    const [currentTva, setCurrentTva] = useState({});
     const [searchId, setSearchId] = useState(null);
 
     // 
-    const [dataDepense, setDataDepense] = useState({
-        location_id: "",
+    const [dataTva, setDataTva] = useState({
+        locattion_id: "",
         montant: "",
         preuve: "",
         commentaire: "",
     });
-
     const [errors, setErrors] = useState({
-        location_id: "",
+        locattion_id: "",
         montant: "",
         preuve: "",
         commentaire: "",
     });
 
-    // les locations
-    const getCamions = useCallback(async function () {
-        try {
-            const response = await axiosInstance.get(apiRoutes.allCamion)
-
-            setCamions(response?.data);
-
-            console.log("Les Camions :", response.data)
-
-            setStatus('success');
-            setStatusCode(response.status);
-            setMessage('Liste des camions chargés avec succès!');
-
-            return response.data;
-        } catch (error) {
-            setStatus('error');
-            setStatusCode(error.response?.status);
-            setMessage('Erreure lors du chargement des locations!!');
-            return [];
-        }
-    }, [])
-
-    // les locations
+    // les Locations
     const getLocations = useCallback(async function () {
         try {
             const response = await axiosInstance.get(apiRoutes.allLocation)
 
-            // juste les depense déjà validés & ayant du reste à livrer
-            let data = response?.data?.filter((location) => location.validatedAt) || []
-            setLocations(data);
-
-            console.log("Les locations :", data)
+            console.log("Les locations à l'initiation : ", response.data)
+            setLocations(response.data);
 
             setStatus('success');
             setStatusCode(response.status);
-            setMessage('Liste des locations chargées avec succès!');
+            setMessage('Liste des locations avec succès!');
 
             return response.data;
         } catch (error) {
-            setStatus('error');
-            setStatusCode(error.response?.status);
-            setMessage('Erreure lors du chargement des locations!!');
-            return [];
+            if (error.response?.status != 204) {
+                setStatus('error');
+                setStatusCode(error.response?.status);
+                setMessage('Erreure lors du chargement des locations!!');
+                return [];
+            }
         }
     }, [])
 
-    // les depenses
-    const getDepenses = useCallback(async function () {
+    // les Tvas
+    const getTvas = useCallback(async function () {
         try {
-            const response = await axiosInstance.get(apiRoutes.allDepense)
+            const response = await axiosInstance.get(apiRoutes.allTva)
 
-            setDepenses(response?.data || []);
+            setTvas(response?.data || []);
 
-            console.log("Les depenses :", response?.data)
+            console.log("Les Tvas :", response?.data)
 
             setStatus('success');
             setStatusCode(response.status);
-            setMessage('Liste des depenses chargées avec succès!');
+            setMessage('Liste des retour de fond chargés avec succès!');
 
             return response.data;
         } catch (error) {
             setStatus('error');
             setStatusCode(error.response?.status);
-            setMessage('Erreure lors du chargement des depenses!!');
+            setMessage('Erreure lors du chargement des retour de fond!!');
             return [];
         }
     }, [])
 
     // initialisation des données
     useEffect(function () {
-        // chargements des locations
+        // chargements des Tvas
         getLocations();
-        // chargement des depenses
-        getDepenses();
-        // chargement de scamions
-        getCamions()
+        // chargement des Tvas
+        getTvas();
     }, [])
 
     // Call DataTable
-    useDataTable('myTable', depenses);
+    useDataTable('myTable', tvas);
 
     useEffect(() => (
-        console.log("Data depense :", dataDepense)
-    ), [dataDepense]);
+        console.log("Data tva :", dataTva)
+    ), [dataTva]);
 
-    useEffect(() => {
-        console.log("Current depense :", dataDepense)
-    }, [dataDepense]);
-
-    // modifier un depense
-    const updateDepense = (e, depense) => {
+    // modifier un Tva
+    const updateTva = (e, tva) => {
         e.preventDefault();
 
-        console.log("updating depense :", depense)
+        setCurrentTva(tva)
 
-        setCurrentDepense({ ...depense, montant: depense._montant, commentaire: depense.commentaire })
+        console.log("The tva : ", tva)
 
-        setDataDepense({
-            ...dataDepense,
-            location_id: depense.location?.id,
-            montant: depense._montant,
-            commentaire: depense.commentaire
+        setDataTva({
+            locattion_id: tva.location?.id,
+            montant: tva._montant,
+            preuve: null,
+            commentaire: tva.commentaire,
         })
 
-        setModalTitle(`Modifier la depense ## ${depense.reference} ##`);
+        setModalTitle(`Modifier le retour de fond ## ${tva.reference} ##`);
         setModalUpdateVisible(true);
-
-        console.log(`Depense Current : ${JSON.stringify(currentDepense)}`)
     }
 
     // submit form
     const handleUpdateSubmit = async (e) => {
         e.preventDefault();
 
-        console.log('Données de la depense à modifier :', dataDepense);
+        console.log('Données du retour de fond à modifier :', dataTva);
+        console.log("Current accompte :", currentTva)
 
         Swal.fire({
             title: "Opération en cours...",
@@ -186,65 +148,69 @@ const List = () => {
                 Swal.close();
             }
         });
+
         setStatus(null);
 
         try {
 
-            const formData = new FormData();
-            formData.append("location_id", dataDepense.location_id);
-            formData.append("montant", dataDepense.montant);
-            formData.append("commentaire", dataDepense.commentaire);
+            const formData = new FormData()
 
-            // Important : n'envoyer le fichier QUE si c'est un vrai File
-            if (dataDepense.preuve instanceof File) {
-                formData.append("preuve", dataDepense.preuve);
+            console.log("Data Tva in handleUpdateSubmit :", dataTva)
+
+            formData.append("locattion_id", dataTva.locattion_id)
+            formData.append("montant", dataTva.montant)
+            formData.append("commentaire", dataTva.commentaire)
+
+            if (dataTva.preuve) {
+                formData.append("preuve", dataTva.preuve)
             }
 
-            formData.append('_method', 'PATCH');
-
-            const response = await axiosInstance.post(apiRoutes.updateDepense(currentDepense?.id), formData);
+            formData.append("_method", "PATCH");
+            const response = await axiosInstance.post(apiRoutes.updateTva(currentTva?.id), formData);
 
             setErrors({
-                location_id: "",
+                locattion_id: "",
                 montant: "",
                 preuve: "",
                 commentaire: "",
             });
 
             setStatus('success');
-            setMessage(`La depense a été modifiée avec succès!`);
+            setMessage(`Le retour de fond a été modifié avec succès!`);
             setStatusCode(response?.status);
 
-            await getDepenses()
+            await getTvas();
 
             setModalUpdateVisible(false);
-            return navigate("/depenses/list");
+
+            return navigate("/tvas/list");
         } catch (error) {
-            console.log('Erreur lors de la modification de la depense :', error);
+            console.log('Erreur lors de la modification du tva :', error);
             let errMessage = '';
 
             if (error.response?.status === 422) {
                 // Erreurs de validation
                 errMessage = `Des erreurs de validation sont survenues. Veuillez vérifier les champs `;
+                setErrors(error.response?.data?.errors);
             } else {
                 errMessage = `Une erreur inattendue est survenue. Veuillez réessayer. (${error.response?.data?.error || 'Erreure survenue'})`;
             }
 
-            console.log(errMessage)
             setLoading(false);
             setStatus('error');
             setMessage(errMessage);
             setStatusCode(error.response?.status);
-            setErrors(error.response?.data?.errors);
+
+            // setModalUpdateVisible(false);
         }
     }
 
-    // valider une depense
-    const validate = async (e, depense) => {
+    // valider un tva
+    const validate = async (e, tva) => {
         e.preventDefault()
 
         ConfirmAlert({
-            title: `Voulez-vous vraiment valider la depense ${depense.reference} ?`,
+            title: `Voulez-vous vraiment valider le retour de fond ${tva.reference} ?`,
             confirmButtonText: "Valider",
             denyButtonText: "Annuler",
             next: async () => {
@@ -264,24 +230,24 @@ const List = () => {
                     });
 
                     setStatus(null);
-                    const response = await axiosInstance.post(apiRoutes.validateDepense(depense.id));
+                    const response = await axiosInstance.post(apiRoutes.validateTva(tva.id));
 
-                    console.log('Depense validée avec succès !');
+                    console.log('tva validé avec succès !');
 
-                    await getDepenses(); // actualiser la liste des depenses
+                    await getTvas(); // actualiser la liste des Tvas
 
                     setModalVisible(false);
                     setStatus('success');
-                    setMessage(`La depense ${depense.reference} a été validée avec succès!`);
+                    setMessage(`Le retour de fond ${tva.reference} a été validé avec succès!`);
                     setStatusCode(response.status);
 
-                    return navigate("/depenses/list");
+                    return navigate("/tvas/list");
                 } catch (error) {
                     setLoading(false);
                     setStatus('error');
                     setStatusCode(error.response?.status);
 
-                    setMessage(`Erreure lors de la validation de la depense ${depense.reference} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
+                    setMessage(`Erreure lors de la validation du retour de fond ${tva.reference} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
                     console.log(`The error response : ${JSON.stringify(error.response)}`)
                 }
             }
@@ -289,13 +255,13 @@ const List = () => {
     }
 
     /**
-     * Deleting a depense
+     * Deleting an tva
      */
-    const deleteDepense = async (e, depense) => {
+    const deleteTva = async (e, tva) => {
         e.preventDefault();
 
         ConfirmAlert({
-            title: `Voulez-vous vraiment supprimer la depense ${depense.reference} ?`,
+            title: `Voulez-vous vraiment supprimer le retour de fond ${tva.reference} ?`,
             confirmButtonText: "Supprimer",
             denyButtonText: "Annuler",
             next: async () => {
@@ -315,24 +281,24 @@ const List = () => {
                     });
 
                     setStatus(null);
-                    const response = await axiosInstance.delete(apiRoutes.deleteDepense(depense?.id));
+                    const response = await axiosInstance.delete(apiRoutes.deleteTva(tva?.id));
 
-                    console.log('Depense supprimée avec succès !');
+                    console.log('tva supprimé avec succès !');
 
-                    await getDepenses(); // actualiser la liste des depenses
+                    await getTvas(); // actualiser la liste des Tvas
 
                     setModalVisible(false);
                     setStatus('success');
-                    setMessage(`La depense ${depense.reference} a été supprimée avec succès!`);
+                    setMessage(`Le retour de fond ${tva.reference} a été supprimé avec succès!`);
                     setStatusCode(response.status);
 
-                    return navigate("/depenses/list");
+                    return navigate("/tvas/list");
                 } catch (error) {
                     setLoading(false);
                     setStatus('error');
                     setStatusCode(error.response?.status);
 
-                    setMessage(`Erreure lors de la suppression de la depense ${depense.reference} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
+                    setMessage(`Erreure lors de la suppression du retour de fond ${tva.reference} : ${error.response?.data?.message || 'Une erreur est survenue'}`);
                     console.log(`The error response : ${JSON.stringify(error.response)}`)
                 }
             }
@@ -340,11 +306,11 @@ const List = () => {
     };
 
     /**
-    * Filtre via client
-    */
-    const filteredDepenses = searchId ? depenses.filter((depense) => depense.camion?.id == searchId) : depenses
+     * Filtre via location
+     */
+    const filteredTvas = searchId ? tvas.filter((tva) => tva.location?.id == searchId) : tvas
 
-    const totalAmount = filteredDepenses.reduce((sum, item) => {
+    const totalAmount = filteredTvas.reduce((sum, item) => {
         const value = Number(item.montant.replace(/\s/g, '').replace(',', '.'));
         return sum + value;
     }, 0);
@@ -357,22 +323,24 @@ const List = () => {
     return (
         <>
             <Card>
-                {checkPermission("depense.create") &&
-                    <LinkButton route={"/depenses/create"}>
-                        <CIcon className='' icon={cibAddthis} /> Ajouter une depense
+                {checkPermission("tva.create") &&
+                    <LinkButton route={"/tvas/create"}>
+                        <CIcon className='' icon={cibAddthis} /> Ajouter un Tva
                     </LinkButton>
                 }
 
-                {/* filtre via camion */}
+                {/* filtre via location */}
                 <div className="row d-flex justify-content-center mb-3">
                     <div className="col-md-6">
                         <Select
-                            placeholder="Rechercher un camion ..."
+                            placeholder="Rechercher une location ..."
+                            name="locattion_id"
+                            id="locattion_id"
                             required
                             className="form-control mt-1 block w-full"
-                            options={camions?.map((camion) => ({
-                                value: camion.id,
-                                label: `${camion.libelle}`,
+                            options={locations?.map((location) => ({
+                                value: location.id,
+                                label: `${location.reference}`,
                             }))
                             }
                             onChange={(option) => setSearchId(option.value)} // update state with id
@@ -382,15 +350,12 @@ const List = () => {
 
                 {/* totaux */}
                 <h5 className="">Montant total : <span className="badge bg-light rounded border shadow text-success">{totalFormattedAmount} FCFA</span></h5>
-
                 <table className="table table-striped bg-transparent" id="myTable">
                     <thead>
                         <tr>
                             <th scope="col">#</th>
-                            <th scope="col">Action</th>
                             <th scope="col">Reference</th>
                             <th scope="col">Location</th>
-                            <th scope="col">Camion</th>
                             <th scope="col">Montant</th>
                             <th scope="col">Preuve</th>
                             <th scope="col">Inserée le</th>
@@ -398,47 +363,47 @@ const List = () => {
                             <th scope="col">Validée le</th>
                             <th scope="col">Validée par</th>
                             <th scope="col">Commentaire</th>
+                            <th scope="col">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {
-                            filteredDepenses.length > 0 ? filteredDepenses.map((depense, key) => (
-                                <tr key={key} id={`row-${depense.id}`}>
+                            filteredTvas.length > 0 ? filteredTvas.map((tva, key) => (
+                                <tr key={key} id={`row-${tva.id}`}>
                                     <th scope="row">{key + 1}</th>
+                                    <td><span className="badge bg-light text-dark rounded border shadow">{tva.reference}</span></td>
+                                    <td>{`${tva.location?.reference}`}</td>
+                                    <td><span className="badge bg-light border shadow text-success" readOnly>{tva.montant} </span></td>
                                     <td>
-                                        {!depense.validatedAt ?
+                                        {tva.preuve ? <a href={tva.preuve} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}
+                                    </td>
+                                    <td>{tva.createdAt || '---'}</td>
+                                    <td>{tva.createdBy?.name || '---'}</td>
+                                    <td>{tva.validatedAt || '---'}</td>
+                                    <td>{tva.validatedBy?.name || '---'}</td>
+                                    <td>
+                                        <textarea className="form-control" rows="1" placeholder={tva.commentaire || '---'}></textarea>
+                                    </td>
+                                    <td>
+                                        {!tva.validatedAt ?
                                             <div className="dropdown">
                                                 <a className="btn btn-dark w-100 dropdown-toggle btn-sm" role="button" data-bs-toggle="dropdown">
                                                     <CIcon className='me-2' icon={cilDialpad} /> Gérer
                                                 </a>
                                                 <ul className="dropdown-menu w-100">
-                                                    {checkPermission("depense.edit") && !depense.validatedAt && <li><a className="dropdown-item text-warning" onClick={(e) => updateDepense(e, depense)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
-                                                    {checkPermission("depense.validate") && !depense.validatedAt && <li><a className="dropdown-item text-success" onClick={(e) => validate(e, depense)} ><CIcon className='me-2' icon={cilCheckCircle} /> Valider</a></li>}
-                                                    {checkPermission("depense.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteDepense(e, depense)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
+                                                    {checkPermission("tva.edit") && !tva.validatedAt && <li><a className="dropdown-item text-warning" onClick={(e) => updateTva(e, tva)} ><CIcon className='me-2' icon={cilPencil} /> Modifier</a></li>}
+                                                    {checkPermission("tva.validate") && !tva.validatedAt && <li><a className="dropdown-item text-success" onClick={(e) => validate(e, tva)} ><CIcon className='me-2' icon={cilCheckCircle} /> Valider</a></li>}
+                                                    {checkPermission("tva.delete") && <li><a className="dropdown-item text-danger" onClick={(e) => deleteTva(e, tva)}><CIcon className='me-2' icon={cilTrash} /> Supprimer</a></li>}
                                                 </ul>
                                             </div> : '---'}
                                     </td>
-                                    <td><span className="badge bg-light text-dark border rounded shadow"> {depense.reference}</span></td>
-                                    <td><span className="badge bg-light text-dark border rounded shadow">{`${depense.location?.reference}`}</span></td>
-                                    <td><span className="badge bg-light text-dark border rounded shadow">{`${depense.camion?.libelle}`}</span></td>
-                                    <td><span className="badge bg-light text-dark border rounded shadow text-success" readOnly>{depense.montant} </span></td>
-                                    <td>
-                                        {depense.preuve ? <a href={depense.preuve} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}
-                                    </td>
-                                    <td>{depense.createdAt || '---'}</td>
-                                    <td>{depense.createdBy?.name || '---'}</td>
-                                    <td>{depense.validatedAt || '---'}</td>
-                                    <td>{depense.validatedBy?.name || '---'}</td>
-                                    <td>
-                                        <textarea className="form-control" rows="1" placeholder={depense.commentaire || '---'}></textarea>
-                                    </td>
                                 </tr>
-                            )) : <tr><td colSpan="11" className="text-center">Aucune depense n'a été trouvée</td></tr>
+                            )) : <tr><td colSpan="11" className="text-center">Aucun retour de fond n'a été trouvé</td></tr>
                         }
                     </tbody>
                 </table>
 
-                {/* modification d'une depense */}
+                {/* modification d'un tva */}
                 <CModal
                     visible={modalUpdateVisible}
                     onClose={() => setModalUpdateVisible(false)}
@@ -448,13 +413,13 @@ const List = () => {
                         <p>{modalTitle}</p>
                         <div className="mb-3">
                             <InputLabel
-                                htmlFor="location"
+                                htmlFor="locattion_id"
                                 text="La location"
                                 required={true} />
                             <Select
-                                placeholder="Rechercher une location ..."
-                                name="location_id"
-                                id="location_id"
+                                placeholder="Rechercher un location ..."
+                                name="locattion_id"
+                                id="locattion_id"
                                 required
                                 className="form-control mt-1 block w-full"
                                 options={locations?.map((location) => ({
@@ -466,35 +431,34 @@ const List = () => {
                                         value: location.id,
                                         label: `${location.reference}`,
                                     }))
-                                    .find((option) => option.value === dataDepense.location_id)} // set selected option
-                                onChange={(option) => setDataDepense({ ...dataDepense, location_id: option.value })} // update state with id
+                                    .find((option) => option.value === dataTva.locattion_id)} // set selected option
+                                onChange={(option) => setDataTva({ ...dataTva, locattion_id: option.value })} // update state with id
                             />
-                            {errors.location_id && <span className="text-danger">{errors.location_id}</span>}
+                            {errors.locattion_id && <span className="text-danger">{errors.locattion_id}</span>}
                         </div>
 
                         <div className="mb-3">
                             <InputLabel
                                 htmlFor="montant"
-                                text="Montant du depense"
+                                text="Montant du retour de fond"
                                 required={true} />
                             <input type="number" name="montant"
                                 className="form-control" id="montant"
-                                value={dataDepense.montant}
+                                value={dataTva.montant}
                                 placeholder="Ex: 50.000"
                                 required
-                                onChange={(e) => setDataDepense({ ...dataDepense, montant: e.target.value })}
+                                onChange={(e) => setDataTva({ ...dataTva, montant: e.target.value })}
                             />
                             {errors.montant && <span className="text-danger">{errors.montant}</span>}
                         </div>
                         <div className="mb-3">
                             <InputLabel
                                 htmlFor="preuve"
-                                text="La preuve du depense"
+                                text="La preuve du retour de fond"
                                 required={false} />
                             <input type="file" name="preuve"
-                                className="form-control" id="contrat"
-                                // required
-                                onChange={(e) => setDataDepense({ ...dataDepense, preuve: e.target.files[0] })} />
+                                className="form-control" id="preuve"
+                                onChange={(e) => setDataTva({ ...dataTva, preuve: e.target.files[0] })} />
                             {errors.preuve && <span className="text-danger">{errors.preuve}</span>}
                         </div>
 
@@ -505,9 +469,9 @@ const List = () => {
                                 required={false} />
                             <textarea name="commentaire" className="form-control"
                                 rows="2"
-                                value={dataDepense.commentaire}
+                                value={dataTva.commentaire}
                                 placeholder="Laissez un commentaire ...."
-                                onChange={(e) => setDataDepense({ ...dataDepense, commentaire: e.target.value })}></textarea>
+                                onChange={(e) => setDataTva({ ...dataTva, commentaire: e.target.value })}></textarea>
                             {errors.commentaire && <span className="text-danger">{errors.commentaire}</span>}
                         </div>
 
