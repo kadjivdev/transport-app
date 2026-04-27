@@ -29,7 +29,6 @@ const List = () => {
     }
 
     const [modalUpdateVisible, setModalUpdateVisible] = useState(false);
-
     const [clients, setClients] = useState([]);
     const [acomptes, setAcomptes] = useState([]);
     const [currentAcompte, setCurrentAcompte] = useState({});

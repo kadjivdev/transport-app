@@ -1,7 +1,7 @@
 import { cilList, cilSend } from "@coreui/icons";
 
 import CIcon from "@coreui/icons-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Card from "src/components/Card";
 import CustomButton from "src/components/CustomButton";
 import LinkButton from "src/components/LinkButton";

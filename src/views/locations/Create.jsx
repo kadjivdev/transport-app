@@ -368,6 +368,8 @@ const Create = () => {
                                             <input type="number"
                                                 className="form-control"
                                                 required
+                                                step="0.01"
+                                                inputMode="decimal"
                                                 placeholder="Ex: 50.000"
                                                 onChange={function (e) {
                                                     let allDetail = [...dataLocation.details]
@@ -386,6 +388,8 @@ const Create = () => {
                                                 <input type="number"
                                                     className="form-control"
                                                     required
+                                                    step="0.01"
+                                                    inputMode="decimal"
                                                     placeholder="Ex: 10"
                                                     onChange={function (e) {
                                                         let allDetail = [...dataLocation.details]
@@ -408,12 +412,12 @@ const Create = () => {
                                                 className="form-control mt-1 block w-full"
                                                 options={camions.map((camion) => ({
                                                     value: camion.id,
-                                                    label: `${camion.libelle}`,
+                                                    label: `${camion.libelle}-${camion.immatriculation}`,
                                                 }))}
                                                 value={camions
                                                     .map((camion) => ({
                                                         value: camion.id,
-                                                        label: `${camion.libelle}`,
+                                                        label: `${camion.libelle}-${camion.immatriculation}`,
                                                     }))
                                                     .find((option) => option.value === detail.camion_id)} // set selected option
                                                 onChange={function (option) {
