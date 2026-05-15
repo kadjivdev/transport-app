@@ -143,11 +143,13 @@ const Create = () => {
                                     <InputLabel
                                         htmlFor="ifu"
                                         text="IFU"
-                                        required={true} />
+                                        // required={true} 
+                                        />
                                     <input type="text" name="ifu" value={dataClient.ifu}
                                         className="form-control" id="ifu" placeholder={`Ex: ###98GHJ##98G`}
                                         onChange={(e) => handleChange(e)}
-                                        required />
+                                        // required 
+                                        />
                                     {errors?.ifu && <span className="text-danger">{errors?.ifu}</span>}
                                 </div>
                             </div>
