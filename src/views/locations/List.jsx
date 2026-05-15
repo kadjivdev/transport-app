@@ -53,6 +53,8 @@ const List = () => {
         client_id: '',
         location_type_id: '',
         date_location: '',
+        bordereau_numero: '',
+        bordereau: '',
         contrat: '',
         commentaire: '',
         carriere: '',
@@ -67,10 +69,14 @@ const List = () => {
         client_id: '',
         location_type_id: '',
         date_location: '',
+        bordereau_numero: '',
+        bordereau: '',
         contrat: '',
         commentaire: '',
         details: ''
     });
+
+
 
     const [showQte, setShowQte] = useState(true);
 
@@ -207,6 +213,8 @@ const List = () => {
         setCurrentLocation(location)
 
         setDataLocation({
+            bordereau_numero: location.bordereau_numero,
+            bordereau: '',
             client_id: location.client?.id,
             location_type_id: location.type?.id,
             date_location: location.date.split("T")?.[0],
@@ -276,8 +284,15 @@ const List = () => {
             formData.append("carriere", dataLocation.carriere)
             formData.append("site_dechargement", dataLocation.site_dechargement)
 
+            formData.append("bordereau_numero", dataLocation.bordereau_numero)
+            // formData.append("bordereau", dataLocation.bordereau)
+
             if (dataLocation.contrat) {
                 formData.append("contrat", dataLocation.contrat)
+            }
+
+            if (dataLocation.bordereau) {
+                formData.append("bordereau", dataLocation.bordereau)
             }
 
             dataLocation.details.forEach((detail, index) => {
@@ -452,6 +467,8 @@ const List = () => {
                             <th scope="col">Réglé</th>
                             <th scope="col">Reste</th>
                             <th scope="col">Depense</th>
+                            <th scope="col">Bordereau</th>
+                            <th scope="col">Numero bordereau</th>
                             <th scope="col">Contrat</th>
                             <th scope="col">Inserée le</th>
                             <th scope="col">Inserée par</th>
@@ -489,6 +506,12 @@ const List = () => {
                                     <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.regle} </span></td>
                                     <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.reste} </span></td>
                                     <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.depenseAmount}</span></td>
+
+                                    <td>
+                                        {location.bordereau ? <a href={location.bordereau} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}
+                                    </td>
+                                    <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.bordereau_numero || '---'}</span></td>
+
                                     <td>
                                         {location.contrat ? <a href={location.contrat} target="_blank" className="btn btn-sm shadow text-dark"><CIcon icon={cilCloudDownload} /></a> : '---'}
 
@@ -521,6 +544,7 @@ const List = () => {
                                     key={index}
                                 >
                                     <div className="">
+                                        <label htmlFor="">Camion</label>
                                         <input type="text"
                                             className="form-control"
                                             readOnly={true}
@@ -529,6 +553,7 @@ const List = () => {
                                     {
                                         currentLocation.type?.id === 3 &&
                                         <div className="mx-2">
+                                            <label htmlFor="">Quantité</label>
                                             <input type="number"
                                                 className="form-control"
                                                 readOnly={true}
@@ -536,6 +561,7 @@ const List = () => {
                                         </div>
                                     }
                                     <div className="">
+                                        <label htmlFor="">Prix</label>
                                         <input type="number"
                                             className="form-control"
                                             readOnly={true}
@@ -660,6 +686,30 @@ const List = () => {
                                 className="form-control" id="contrat"
                                 onChange={(e) => setDataLocation({ ...dataLocation, contrat: e.target.files[0] })} />
                             {errors.contrat && <span className="text-danger">{errors.contrat}</span>}
+                        </div>
+
+                        <div className="mb-3">
+                            <InputLabel
+                                htmlFor="bordereau"
+                                text="Le bordereau de location" />
+                            <input type="file" name="bordereau"
+                                className="form-control" id="bordereau"
+                                onChange={(e) => setDataLocation({ ...dataLocation, bordereau: e.target.files[0] })} />
+                            {errors.bordereau && <span className="text-danger">{errors.bordereau}</span>}
+                        </div>
+
+                        <div className="mb-3">
+                            <InputLabel
+                                htmlFor="bordereau_numero"
+                                text="Numero de bordereau" />
+                            <input type="text" name="bordereau_numero"
+                                className="form-control"
+                                placeholder="Ex: Numéro de bordereau"
+                                value={dataLocation.bordereau_numero}
+                                id="bordereau_numero"
+                                onChange={(e) => setDataLocation({ ...dataLocation, bordereau_numero: e.target.value })}
+                                required />
+                            {errors.date && <span className="text-danger">{errors.bordereau_numero}</span>}
                         </div>
 
                         {/* Details de la location */}

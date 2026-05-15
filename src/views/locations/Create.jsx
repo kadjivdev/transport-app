@@ -26,6 +26,8 @@ const Create = () => {
         location_type_id: '',
         date_location: '',
         contrat: '',
+        bordereau_numero: '',
+        bordereau: '',
         carriere: '',
         site_dechargement: '',
         commentaire: '',
@@ -41,6 +43,8 @@ const Create = () => {
         location_type_id: '',
         date_location: '',
         contrat: '',
+        bordereau_numero: '',
+        bordereau: '',
         commentaire: '',
         carriere: '',
         site_dechargement: '',
@@ -236,7 +240,7 @@ const Create = () => {
             <div className="row">
                 <div className="col-md-2"></div>
                 <div className="col-md-8">
-                    {checkPermission("location.list") &&
+                    {checkPermission("location.view") &&
                         <LinkButton route={"/locations/list"}>
                             <CIcon className='' icon={cilList} /> Liste des locations
                         </LinkButton>
@@ -312,7 +316,7 @@ const Create = () => {
                                     <div className="mb-3">
                                         <InputLabel
                                             htmlFor="carriere"
-                                            text="Carrière"/>
+                                            text="Carrière" />
                                         <input type="text" name="carriere"
                                             className="form-control" id="carriere"
                                             placeholder="Ex: Carrière"
@@ -345,6 +349,29 @@ const Create = () => {
                                     className="form-control" id="contrat"
                                     onChange={(e) => setDataLocation({ ...dataLocation, contrat: e.target.files[0] })} />
                                 {errors.contrat && <span className="text-danger">{errors.contrat}</span>}
+                            </div>
+
+                            <div className="mb-3">
+                                <InputLabel
+                                    htmlFor="bordereau"
+                                    text="Le bordereau de location" />
+                                <input type="file" name="bordereau"
+                                    className="form-control" id="bordereau"
+                                    onChange={(e) => setDataLocation({ ...dataLocation, bordereau: e.target.files[0] })} />
+                                {errors.bordereau && <span className="text-danger">{errors.bordereau}</span>}
+                            </div>
+
+                            <div className="mb-3">
+                                <InputLabel
+                                    htmlFor="bordereau_numero"
+                                    text="Numero de bordereau" />
+                                <input type="text" name="bordereau_numero"
+                                    className="form-control"
+                                    placeholder="Ex: Numéro de bordereau"
+                                    id="bordereau_numero"
+                                    onChange={(e) => setDataLocation({ ...dataLocation, bordereau_numero: e.target.value })}
+                                    required />
+                                {errors.date && <span className="text-danger">{errors.bordereau_numero}</span>}
                             </div>
 
                             {/* Details de la location */}
