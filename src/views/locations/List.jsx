@@ -501,7 +501,7 @@ const List = () => {
                                     <td><span className="">{`${location.client?.nom} - ${location.client?.prenom}`}</span></td>
                                     <td>{location.type?.libelle || '---'}</td>
                                     <td>{location.date_location || '---'}</td>
-                                    <td><span onClick={(e) => showDetail(e, location)} className="btn btn-sm shadow text-dark"><CIcon icon={cilList} /></span></td>
+                                    <td><span onClick={(e) => showDetail(e, location)} className="btn btn-sm shadow text-dark"><CIcon icon={cilList} /></span> {location.details[0]?.camion?.libelle} {location.details[0]?.camion?.immatriculation} </td>
                                     <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.montant} </span></td>
                                     <td><span className="badge bg-light border rounded shadow text-success" readOnly>{location.regle} </span></td>
                                     <td><span className="badge bg-light border rounded shadow text-danger" readOnly>{location.reste} </span></td>
