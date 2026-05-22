@@ -244,7 +244,7 @@ const Create = () => {
                                                 isMulti={true}
                                                 options={camions.map((camion) => ({
                                                     value: camion.id,
-                                                    label: `${camion.libelle}`,
+                                                    label: `${camion.libelle} | ${camion.immatriculation}`,
                                                 }))}
                                                 onChange={(options) => setDataReglement({ ...dataReglement, camions: options ? options.map(opt => opt.value) : [] })} // update state with id
                                             />

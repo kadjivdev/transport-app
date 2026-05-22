@@ -538,7 +538,7 @@ const List = () => {
                                             }))}
                                             options={camions.map((camion) => ({
                                                 value: camion.id,
-                                                label: `${camion.libelle}`,
+                                                label: `${camion.libelle} | ${camion.immatriculation}`,
                                             }))}
                                             onChange={(options) => setDataReglement({ ...dataReglement, camions: options.map(opt => ({ id: opt.value, libelle: opt.label })) ?? [] })} // update state with id
                                         />
